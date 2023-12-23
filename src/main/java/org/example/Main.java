@@ -1,7 +1,8 @@
 package org.example;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-import java.io.*;
+import org.gen.cssLexer;
+import org.gen.cssParser;
 
 public class Main {
 	private static void handleFileErrors() {

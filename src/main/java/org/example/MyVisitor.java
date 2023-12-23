@@ -1,12 +1,12 @@
 package org.example;
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
+import org.gen.cssParser;
 import org.stringtemplate.v4.*;
 
 import java.util.LinkedList;
+import org.gen.*;
 
 public class MyVisitor  extends cssBaseVisitor<CodeFragment> {
-	private STGroup templateGroup = new STGroupFile("templates.stg");
+	private STGroup templateGroup = new STGroupFile("../../../resources/templates.stg");
 	private VariableType inheritedType;
 	/* scope information */
 	private LinkedList<ScopeInfo> scopeStack = new LinkedList<>();
