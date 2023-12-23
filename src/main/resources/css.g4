@@ -3,7 +3,7 @@ grammar css;
 import cssLex;
 
 program
-	: varDeclBlock* function+ EOF
+	: function+ EOF
 ;
 
 varDeclBlock
