@@ -44,6 +44,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 		GlobalVars.functions.put(ctx.ID().getText(), function);
 
+		GlobalVars.scopeStack.pop();
+		
 		return functionDef.render();
 	}
 }
