@@ -16,4 +16,8 @@ public class ScopeInfo {
     public boolean containsVariable(String varName) {
         return variables.containsKey(varName);
     }
+
+    public Variable getVariable(String varName) {
+        return variables.get(varName);
+    }
 }

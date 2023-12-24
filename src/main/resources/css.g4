@@ -43,10 +43,7 @@ codeFragment
 ;
 
 expression
-	: ID						#baseExpr
-	| INT						#baseExpr
-	| CHAR						#baseExpr
-	| STRING					#baseExpr
+    : base=(ID | INT | CHAR | STRING) #baseExpr
 	| ID ASSIGN expression				#assignExpr
 	| INC ID (LEFT_SQUARE expression RIGHT_SQUARE)*	#incExpr
 	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*	#decExpr

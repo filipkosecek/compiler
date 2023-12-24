@@ -24,12 +24,23 @@ public class GlobalContext {
     }
 
     public boolean isVariableDeclared(String id) {
-        Iterator<ScopeInfo> reverse = scopeStack.iterator();
+        Iterator<ScopeInfo> reverse = scopeStack.descendingIterator();
         while (reverse.hasNext()) {
             if (reverse.next().containsVariable(id))
                 return true;
         }
         return false;
+    }
+
+    public Variable getVariable(String id) {
+        Iterator<ScopeInfo> reverse = scopeStack.descendingIterator();
+        while (reverse.hasNext()) {
+            ScopeInfo current = reverse.next();
+            if (current.containsVariable(id)) {
+                return current.getVariable(id);
+            }
+        }
+        return null;
     }
 
     public void addNewScope() {
