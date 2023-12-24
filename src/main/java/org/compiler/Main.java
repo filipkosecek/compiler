@@ -7,7 +7,7 @@ import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupFile;
 
 public class Main {
-	public static void main(String[] args) throws Exception{
+	public static void main(String[] args) {
 		CharStream in = null;
 		if (args.length != 1)
 			GlobalVars.handleFileErrors();
@@ -20,6 +20,6 @@ public class Main {
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		cssParser parser = new cssParser(tokens);
 		ParseTree tree = parser.program();
-		GlobalVars.mainVisitor.visit(tree);
+		System.out.println(GlobalVars.mainVisitor.visit(tree));
 	}
 }

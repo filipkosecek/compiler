@@ -52,7 +52,7 @@ expression
 	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*	#decExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET		#subExpr
 	| ID LEFT_BRACKET funcParamList* RIGHT_BRACKET	#funcCallExpr
-	| ID LEFT_SQUARE expression RIGHT_SQUARE	#arrayExpr
+	| ID (LEFT_SQUARE expression RIGHT_SQUARE)+	#arrayExpr
 	| MINUS expression				#unOpExpr
 	| BIT_NOT expression				#unOpExpr
 	| LOGICAL_NOT expression			#unOpExpr

@@ -20,7 +20,7 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
             }
             if (arg.isReference())
                 sb.append('*');
-            sb.append(' ');
+            sb.append(" %");
             sb.append(arg.getLlName());
         }
         return sb.toString();
@@ -29,7 +29,7 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
     public Pair<List<Variable>, String> visitArgList(cssParser.ArgListContext ctx) {
         ArrayList<Variable> argList = new ArrayList<>(ctx.funcArg().size());
         for (int i = 0; i < ctx.funcArg().size(); ++i) {
-            argList.set(i, ctx.funcArg(i).accept(GlobalVars.functionArgumentVisitor));
+            argList.add(ctx.funcArg(i).accept(GlobalVars.functionArgumentVisitor));
         }
         return new Pair<>(argList, generateCode(argList));
     }

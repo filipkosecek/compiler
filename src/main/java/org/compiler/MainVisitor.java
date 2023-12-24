@@ -8,14 +8,17 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	@Override
 	public String visitProgram(cssParser.ProgramContext ctx) {
 		ST programBodyTemplate = GlobalVars.templateGroup.getInstanceOf("program");
+		StringBuilder sb = new StringBuilder();
 		/*
 		for (int i = 0; i < ctx.varDeclBlock().size(); ++i) {
 			programBodyTemplate.add("globalVars", visit(ctx.varDeclBlock(i)).code);
 		}
 		*/
 		for (int i = 0; i < ctx.function().size(); ++i) {
-			programBodyTemplate.add("programBody", visit(ctx.function(i)));
+			sb.append(visit(ctx.function(i)));
+			sb.append('\n');
 		}
+		programBodyTemplate.add("programBody", sb.toString());
 		return programBodyTemplate.render();
 	}
 
@@ -45,7 +48,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		GlobalVars.functions.put(ctx.ID().getText(), function);
 
 		GlobalVars.scopeStack.pop();
-		
+
 		return functionDef.render();
 	}
 }

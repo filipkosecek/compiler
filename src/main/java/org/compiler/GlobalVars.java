@@ -12,13 +12,13 @@ public class GlobalVars {
     public static final STGroup templateGroup = new STGroupFile("/home/filipkosecek/IdeaProjects/untitled/src/main/resources/templates.stg");
     /* scope information */
     public static final LinkedList<ScopeInfo> scopeStack = new LinkedList<>();
-    public static boolean scanScopes(String id) {
+    public static boolean isVariableDeclared(String id) {
         Iterator<ScopeInfo> reverse = scopeStack.iterator();
         while (reverse.hasNext()) {
             if (reverse.next().containsVariable(id))
-                return false;
+                return true;
         }
-        return true;
+        return false;
     }
     public static final HashMap<String, Function> functions = new HashMap<>();
     public static int idCounter = 1;

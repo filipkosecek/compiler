@@ -8,7 +8,7 @@ import org.gen.*;
 
 public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     private void addToScope(String id, Variable var) {
-        if (GlobalVars.scanScopes(id))
+        if (GlobalVars.isVariableDeclared(id))
             GlobalVars.handleFatalError("variable name collision");
         GlobalVars.scopeStack.getLast().addVariable(id, var);
     }
