@@ -6,6 +6,14 @@ import java.util.List;
 
 /* bude treba upravit ak pridam globalne premenne */
 public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variable>, String>> {
+    private final GlobalContext globalContext;
+    private final FunctionArgumentVisitor functionArgumentVisitor;
+
+    public FunctionArgumentListVisitor(GlobalContext globalContext) {
+        this.globalContext = globalContext;
+        this.functionArgumentVisitor = new FunctionArgumentVisitor(globalContext);
+    }
+
     private String generateCode(ArrayList<Variable> argList) {
         // argList size is at least one (grammar)
         StringBuilder sb = new StringBuilder();
@@ -14,7 +22,7 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
                 sb.append(" ,");
             }
             Variable arg = argList.get(i);
-            sb.append(GlobalVars.variableTypeToLLType.get(arg.getType()));
+            sb.append(globalContext.variableTypeToLLType.get(arg.getType()));
             for (int j = 0; j < arg.getDimensionCount(); ++j) {
                 sb.append('*');
             }
@@ -29,7 +37,7 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
     public Pair<List<Variable>, String> visitArgList(cssParser.ArgListContext ctx) {
         ArrayList<Variable> argList = new ArrayList<>(ctx.funcArg().size());
         for (int i = 0; i < ctx.funcArg().size(); ++i) {
-            argList.add(GlobalVars.functionArgumentVisitor.visit(ctx.funcArg(i)));
+            argList.add(functionArgumentVisitor.visit(ctx.funcArg(i)));
         }
         return new Pair<>(argList, generateCode(argList));
     }

@@ -7,15 +7,15 @@ import org.gen.*;
  */
 
 public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
-    private void addToScope(String id, Variable var) {
-        if (GlobalVars.isVariableDeclared(id))
-            GlobalVars.handleFatalError("variable name collision");
-        GlobalVars.scopeStack.getLast().addVariable(id, var);
+    private final GlobalContext globalContext;
+
+    public FunctionArgumentVisitor(GlobalContext globalContext) {
+        this.globalContext = globalContext;
     }
 
     private void checkVoidType(String type) {
         if (type.equals("void"))
-            GlobalVars.handleFatalError("A function argument cannot be of void type.");
+            globalContext.handleFatalError("A function argument cannot be of void type.");
     }
 
     private int getDimensionCount(cssParser.FuncArgClassicContext ctx) {
@@ -27,16 +27,16 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     @Override
     public Variable visitFuncArgClassic(cssParser.FuncArgClassicContext ctx) {
         checkVoidType(ctx.TYPE().getText());
-        Variable var = new Variable(GlobalVars.getNewReg(), ctx.TYPE().getText(), getDimensionCount(ctx), false);
-        addToScope(ctx.ID().getText(), var);
+        Variable var = new Variable(globalContext.getNewReg(), ctx.TYPE().getText(), getDimensionCount(ctx), false);
+        globalContext.addToLastScope(ctx.ID().getText(), var);
         return var;
     }
 
     @Override
     public Variable visitFuncArgReference(cssParser.FuncArgReferenceContext ctx) {
         checkVoidType(ctx.TYPE().getText());
-        Variable var = new Variable(GlobalVars.getNewReg(), ctx.TYPE().getText(), 0, true);
-        addToScope(ctx.ID().getText(), var);
+        Variable var = new Variable(globalContext.getNewReg(), ctx.TYPE().getText(), 0, true);
+        globalContext.addToLastScope(ctx.ID().getText(), var);
         return var;
     }
 }
