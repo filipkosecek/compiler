@@ -43,12 +43,14 @@ codeFragment
 ;
 
 expression
-    : base=(ID | INT | CHAR | STRING)                               #baseExpr
-	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
-	| incDec=(INC | DEC) ID (LEFT_SQUARE expression RIGHT_SQUARE)*  #incDecExpr
+    : base=(INT | CHAR | STRING)                                    #baseExpr
+    | ID (LEFT_SQUARE expression RIGHT_SQUARE)*                     #idExpr
+	| ID ASSIGN expression                                          #assignIdExpr
+	| ID (LEFT_SQUARE expression RIGHT_SQUARE)+ ASSIGN expression   #assignArrayExpr
+	| incDec=(INC | DEC) ID                                         #incDecIdExpr
+	| incDec=(INC | DEC) ID (LEFT_SQUARE expression RIGHT_SQUARE)+  #incDecArrayExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
 	| ID LEFT_BRACKET funcParamList* RIGHT_BRACKET                  #funcCallExpr
-	| ID (LEFT_SQUARE expression RIGHT_SQUARE)+                     #arrayExpr
 	| unOp=(MINUS | BIT_NOT | LOGICAL_NOT) expression               #unOpExpr
 	| LEFT_BRACKET TYPE RIGHT_BRACKET ID                            #typeCastExpr
 	| expression binOp=(MULT | DIV | MOD | PLUS | MINUS |

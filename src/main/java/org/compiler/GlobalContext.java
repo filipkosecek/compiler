@@ -57,6 +57,14 @@ public class GlobalContext {
         scopeStack.getLast().addVariable(id, var);
     }
 
+    public void assignNewRegister(String id, String newRegister) {
+        Variable var = getVariable(id);
+        if (var == null)
+            throw new RuntimeException("shit happens");
+
+        var.setLlName(newRegister);
+    }
+
     private int idCounter = 1;
     private final Map<String, String> variableTypeToLLType = Map.of("byte", "i8",
                                                                         "ubyte", "i8",
@@ -83,5 +91,13 @@ public class GlobalContext {
 
     public String genNewLabel() {
         return String.format("label%d", idCounter++);
+    }
+
+    public String pointer(String llType, int n) {
+        StringBuilder sb = new StringBuilder(llType);
+        for (int i = 0; i < n; ++i) {
+            sb.append('*');
+        }
+        return sb.toString();
     }
 }
