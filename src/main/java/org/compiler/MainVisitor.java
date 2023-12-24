@@ -35,7 +35,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 		Function function;
 		if (ctx.argList() != null) {
-			Pair<List<Variable>, String> pair = ctx.argList().accept(GlobalVars.functionArgumentListVisitor);
+			Pair<List<Variable>, String> pair = GlobalVars.functionArgumentListVisitor.visit(ctx.argList());
 			functionDef.add("argumentList", pair.p2);
 			function = new Function(ctx.TYPE().getText(), pair.p1);
 		} else {

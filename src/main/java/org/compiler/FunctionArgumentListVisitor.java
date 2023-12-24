@@ -29,7 +29,7 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
     public Pair<List<Variable>, String> visitArgList(cssParser.ArgListContext ctx) {
         ArrayList<Variable> argList = new ArrayList<>(ctx.funcArg().size());
         for (int i = 0; i < ctx.funcArg().size(); ++i) {
-            argList.add(ctx.funcArg(i).accept(GlobalVars.functionArgumentVisitor));
+            argList.add(GlobalVars.functionArgumentVisitor.visit(ctx.funcArg(i)));
         }
         return new Pair<>(argList, generateCode(argList));
     }
