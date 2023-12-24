@@ -43,34 +43,18 @@ codeFragment
 ;
 
 expression
-    : base=(ID | INT | CHAR | STRING) #baseExpr
-	| ID ASSIGN expression				#assignExpr
-	| INC ID (LEFT_SQUARE expression RIGHT_SQUARE)*	#incExpr
-	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*	#decExpr
-	| LEFT_BRACKET expression RIGHT_BRACKET		#subExpr
-	| ID LEFT_BRACKET funcParamList* RIGHT_BRACKET	#funcCallExpr
-	| ID (LEFT_SQUARE expression RIGHT_SQUARE)+	#arrayExpr
-	| MINUS expression				#unOpExpr
-	| BIT_NOT expression				#unOpExpr
-	| LOGICAL_NOT expression			#unOpExpr
-	| LEFT_BRACKET TYPE RIGHT_BRACKET ID		#typeCastExpr
-	| expression MULT expression			#binOpExpr
-	| expression DIV expression			#binOpExpr
-	| expression MOD expression			#binOpExpr
-	| expression PLUS expression			#binOpExpr
-	| expression MINUS expression			#binOpExpr
-	| expression SHIFT_LEFT expression		#binOpExpr
-	| expression SHIFT_RIGHT expression		#binOpExpr
-	| expression LT expression			#binOpExpr
-	| expression LTE expression			#binOpExpr
-	| expression GT expression			#binOpExpr
-	| expression GTE expression			#binOpExpr
-	| expression EQ expression			#binOpExpr
-	| expression NEQ expression			#binOpExpr
-	| expression AMPERSAND expression		#binOpExpr
-	| expression LOGICAL_OR expression		#binOpExpr
-	| expression LOGICAL_AND expression		#binOpExpr
-	| NEW TYPE LEFT_SQUARE expression RIGHT_SQUARE	#allocExpr
+    : base=(ID | INT | CHAR | STRING)                               #baseExpr
+	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
+	| incDec=(INC | DEC) ID (LEFT_SQUARE expression RIGHT_SQUARE)*  #incDecExpr
+	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
+	| ID LEFT_BRACKET funcParamList* RIGHT_BRACKET                  #funcCallExpr
+	| ID (LEFT_SQUARE expression RIGHT_SQUARE)+                     #arrayExpr
+	| unOp=(MINUS | BIT_NOT | LOGICAL_NOT) expression               #unOpExpr
+	| LEFT_BRACKET TYPE RIGHT_BRACKET ID                            #typeCastExpr
+	| expression binOp=(MULT | DIV | MOD | PLUS | MINUS |
+	SHIFT_LEFT | SHIFT_RIGHT | LT | LTE | GT | GTE | EQ | NEQ
+	| AMPERSAND | LOGICAL_OR | LOGICAL_AND) expression              #binOpExpr
+	| NEW TYPE (LEFT_SQUARE expression RIGHT_SQUARE)*               #allocExpr
 ;
 
 funcParamList

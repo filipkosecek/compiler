@@ -37,7 +37,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		globalContext.addNewScope();
 
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
-		functionDef.add("returnType", globalContext.variableTypeToLLType.get(ctx.TYPE().getText()));
+		functionDef.add("returnType", globalContext.variableTypeToLLType(ctx.TYPE().getText()));
 		functionDef.add("name", ctx.ID().getText());
 
 		Function function;

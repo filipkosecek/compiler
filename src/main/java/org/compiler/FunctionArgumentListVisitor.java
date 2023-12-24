@@ -22,7 +22,7 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
                 sb.append(" ,");
             }
             Variable arg = argList.get(i);
-            sb.append(globalContext.variableTypeToLLType.get(arg.getType()));
+            sb.append(globalContext.variableTypeToLLType(arg.getType()));
             for (int j = 0; j < arg.getDimensionCount(); ++j) {
                 sb.append('*');
             }

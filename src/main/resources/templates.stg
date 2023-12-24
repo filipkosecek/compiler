@@ -16,3 +16,15 @@ functionDef(returnType, name, argumentList, code) ::= <<
 	<code>
 	}
 >>
+
+assign(reg, value) ::= <<
+    %<reg> = <value>
+>>
+
+add(val1, val2) ::= <<
+    add <val1>, <val2>
+>>
+
+dereference(destReg, type, ptrReg) ::= <<
+    %<destReg> = load <type>, <type>* %<ptrReg>
+>>

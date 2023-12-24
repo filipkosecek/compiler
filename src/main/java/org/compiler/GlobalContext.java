@@ -58,12 +58,16 @@ public class GlobalContext {
     }
 
     private int idCounter = 1;
-    public final Map<String, String> variableTypeToLLType = Map.of("byte", "i8",
+    private final Map<String, String> variableTypeToLLType = Map.of("byte", "i8",
                                                                         "ubyte", "i8",
                                                                         "int", "i32",
                                                                         "uint", "i32",
                                                                         "void", "void"
                                                                         );
+
+    public String variableTypeToLLType(String type) {
+        return variableTypeToLLType.get(type);
+    }
     public void handleFileErrors() {
         handleFatalError("couldn't open the input file");
     }
