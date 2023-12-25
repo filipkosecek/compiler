@@ -33,6 +33,13 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
         }
         return sb.toString();
     }
+
+    /**
+     * Visit all function parameters and return argument list
+     * and corresponding code.
+     * @param ctx the parse tree
+     * @return
+     */
     @Override
     public Pair<List<Variable>, String> visitArgList(cssParser.ArgListContext ctx) {
         ArrayList<Variable> argList = new ArrayList<>(ctx.funcArg().size());

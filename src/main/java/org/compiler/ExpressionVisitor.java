@@ -13,6 +13,11 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         this.globalContext = globalContext;
     }
 
+    /**
+     * Visit literal expressions.
+     * @param ctx the parse tree
+     * @return Expression structure
+     */
     @Override
     public Expression visitBaseExpr(cssParser.BaseExprContext ctx) {
         ST template;
@@ -37,6 +42,10 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         return null;
     }
 
+    /**
+     * Return code and Expression structure which corresponds
+     * to array access.
+     */
     private Expression dereference(Variable var, List<Expression> expressionList, int n) {
         String destReg = var.getLlName();
         StringBuilder sb = new StringBuilder();
@@ -65,6 +74,11 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 false, 0);
     }
 
+    /**
+     * Return an Expression structure containing code
+     * which corresponds to a dereference and its value.
+     * TODO when a reference is the entire expression, no code should be returned
+     */
     private Expression returnReference(Variable var) {
         ST template = globalContext.templateGroup.getInstanceOf("dereference");
         String destReg = globalContext.getNewReg();
@@ -76,6 +90,9 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 0, false, 0);
     }
 
+    /**
+     * Return value of a variable or array.
+     */
     @Override
     public Expression visitIdExpr(cssParser.IdExprContext ctx) {
         Variable var = globalContext.getVariable(ctx.ID().getText());
@@ -101,6 +118,10 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         return dereference(var, subexpressions, subexpressions.size());
     }
 
+    /**
+     * Generate code which assigns Expression structure
+     * to reference.
+     */
     private Expression assignToReference(Variable var, Expression expression) {
         ST template = globalContext.templateGroup.getInstanceOf("store");
         template.add("valueType", globalContext.variableTypeToLLType(expression.type()));
@@ -114,6 +135,9 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 expression.type(), 0, false, 0);
     }
 
+    /**
+     * Assign value to a non-array variable.
+     */
     @Override
     public Expression visitAssignIdExpr(cssParser.AssignIdExprContext ctx) {
         Variable var = globalContext.getVariable(ctx.ID().getText());

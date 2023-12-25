@@ -12,6 +12,10 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		this.globalContext = globalContext;
 		functionArgumentListVisitor = new FunctionArgumentListVisitor(globalContext);
 	}
+
+	/**
+	 * Visit initial non-terminal.
+	 */
 	@Override
 	public String visitProgram(cssParser.ProgramContext ctx) {
 		ST programBodyTemplate = globalContext.templateGroup.getInstanceOf("program");
@@ -20,6 +24,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return programBodyTemplate.render();
 	}
 
+	/**
+	 * Generate function code and add function to the map of declared functions.
+	 */
 	@Override
 	public String visitFunction(cssParser.FunctionContext ctx) {
 		if (globalContext.containsFunction(ctx.ID().getText()))
@@ -50,6 +57,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return functionDef.render();
 	}
 
+	/**
+	 * Generate code for code block.
+	 */
 	@Override
 	public String visitCodeBlock(cssParser.CodeBlockContext ctx) {
 		ST template = globalContext.templateGroup.getInstanceOf("codeBlock");
@@ -59,6 +69,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return template.render();
 	}
 
+	/**
+	 * Generate code for a line of code.
+	 */
 	@Override
 	public String visitCodeFragmentExpr(cssParser.CodeFragmentExprContext ctx) {
 		Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());

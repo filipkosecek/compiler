@@ -24,6 +24,9 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
         return ctx.LEFT_SQUARE().size();
     }
 
+    /**
+     * Return type of argument and put it to the last scope.
+     */
     @Override
     public Variable visitFuncArgClassic(cssParser.FuncArgClassicContext ctx) {
         checkVoidType(ctx.TYPE().getText());
@@ -33,6 +36,9 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
         return var;
     }
 
+    /**
+     * Process reference function argument.
+     */
     @Override
     public Variable visitFuncArgReference(cssParser.FuncArgReferenceContext ctx) {
         checkVoidType(ctx.TYPE().getText());
