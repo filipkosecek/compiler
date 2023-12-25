@@ -1,39 +1,47 @@
 group templates ;
 
 program(programBody, globalVariables) ::= <<
-    declare i32 @scanf(i8*, ...)
-	declare i32 @printf(i8*, ...)
-	<globalVariables; separator="\n">
-	<programBody>
+declare i32 @scanf(i8*, ...)
+declare i32 @printf(i8*, ...)
+
+<globalVariables; separator="\n">
+<programBody>
 >>
 
 globalVarDecl(name, llvmType, llvmLiteral) ::= <<
-	@<name> = global <llvmType> <llvmLiteral>
+@<name> = global <llvmType> <llvmLiteral>
 >>
 
 globalString(name, size, body) ::= <<
-    <name> = global [<size> x i8] c"<body>\00"
+<name> = global [<size> x i8] c"<body>\00"
 >>
 
 globalStringAccess(dest, name, size) ::= <<
-    <dest> = getelementptr [<size> x i8], [<size> x i8]* <name>
+<dest> = getelementptr [<size> x i8], [<size> x i8]* <name>
 >>
 
-functionDef(returnType, name, argumentList, code) ::= <<
-	define <returnType> @<name>(<argumentList>)
-	{
+paramInit(destReg, type, initValue, ptrType) ::= <<
+<destReg> = alloca <type>
+store <type> <initValue>, <ptrType> <destReg>
+>>
+
+functionDef(returnType, name, argumentList, code, label, paramInit) ::= <<
+define <returnType> @<name>(<argumentList>)
+{
+<label>:
+	<paramInit; separator="\n">
 	<code>
-	}
+}
 >>
 
 store(valueType, valueReg, ptrType, ptrReg, previousCode) ::= <<
-    <previousCode>
-    store <valueType> <valueReg>, <ptrType> <ptrReg>
+<previousCode>
+store <valueType> <valueReg>, <ptrType> <ptrReg>
 >>
 
 add(destReg, type, val1, val2, previousCode) ::= <<
-    <previousCode>
-    <destReg> = add <type> <val1>, <val2>
+<previousCode>
+<destReg> = add <type> <val1>, <val2>
 >>
 
 subtract(destReg, type, val1, val2, previousCode) ::= <<

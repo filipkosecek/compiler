@@ -21,7 +21,6 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		ST programBodyTemplate = globalContext.templateGroup.getInstanceOf("program");
 		for (int i = 0; i < ctx.function().size(); ++i)
 			programBodyTemplate.add("programBody", visit(ctx.function(i)));
-		//TODO add global variables to template
 		for (String s : globalContext.globalStrings.keySet()) {
 			ST globString = globalContext.templateGroup.getInstanceOf("globalString");
 			globString.add("name", s);
@@ -43,23 +42,31 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 		globalContext.addNewScope();
 
+		Pair<List<Variable>, String> pair = functionArgumentListVisitor.visit(ctx.argList());
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
 		functionDef.add("returnType", globalContext.variableTypeToLLType(ctx.TYPE().getText()));
 		functionDef.add("name", ctx.ID().getText());
-
-		Function function;
-		if (ctx.argList() != null) {
-			Pair<List<Variable>, String> pair = functionArgumentListVisitor.visit(ctx.argList());
-			functionDef.add("argumentList", pair.p2);
-			function = new Function(ctx.TYPE().getText(), pair.p1);
-		} else {
-			functionDef.add("argumentList", "");
-			function = new Function(ctx.TYPE().getText());
-		}
-
+		functionDef.add("label", globalContext.genNewLabel());
+		functionDef.add("argumentList", pair.p2);
 		functionDef.add("code", visit(ctx.codeBlock()));
 
-		globalContext.addFunctionToGlobalContext(ctx.ID().getText(), function);
+		List<Variable> argList = pair.p1;
+		for (Variable arg : argList) {
+			if (arg.isReference() || arg.getDimensionCount() > 0)
+				continue;
+			ST paramInit = globalContext.templateGroup.getInstanceOf("paramInit");
+			String destReg = globalContext.getNewReg();
+			paramInit.add("destReg", destReg);
+			paramInit.add("type", arg.getType());
+			paramInit.add("ptrType",
+					globalContext.pointer(globalContext.variableTypeToLLType(arg.getType()), 1));
+			paramInit.add("initValue", arg.getLlName());
+			arg.setLlName(destReg);
+			functionDef.add("paramInit", paramInit.render());
+		}
+
+		globalContext.addFunctionToGlobalContext(ctx.ID().getText(),
+				new Function(globalContext.variableTypeToLLType(ctx.TYPE().getText())));
 
 		globalContext.popScope();
 

@@ -19,8 +19,6 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     }
 
     private int getDimensionCount(cssParser.FuncArgClassicContext ctx) {
-        if (ctx.LEFT_SQUARE() == null)
-            return 0;
         return ctx.LEFT_SQUARE().size();
     }
 
