@@ -27,17 +27,14 @@ functionDef(returnType, name, argumentList, code) ::= <<
 
 >>
 
-assign(reg, value) ::= <<
-    <reg> = <value>
-
->>
-
-store(valueType, valueReg, ptrType, ptrReg) ::= <<
+store(valueType, valueReg, ptrType, ptrReg, previousCode) ::= <<
+    <previousCode>
     store <valueType> <valueReg>, <ptrType> <ptrReg>
 
 >>
 
-add(destReg, type, val1, val2) ::= <<
+add(destReg, type, val1, val2, previousCode) ::= <<
+    <previousCode>
     <destReg> = add <type> <val1>, <val2>
 
 >>
@@ -47,10 +44,21 @@ dereference(destReg, destType, ptrReg, ptrType) ::= <<
 
 >>
 
-arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg) ::= <<
+arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg, previousCode) ::= <<
+    <previousCode>
     <tmpReg> = getelementptr <destType>, <ptrType> <ptrReg>, <indexType> <indexReg>
     <destReg> = load <destType>, <ptrType> <tmpReg>
 
+>>
+
+arrayMultiLevelIndexing(indexing) ::= <<
+    <indexing; separator="\n">
+>>
+
+arrayWrite(tmpReg, valueType, value, ptrType, ptr, indexType, index, previousCode) ::= <<
+    <previousCode; separator="\n">
+    <tmpReg> = getelementptr <valueType>, <ptrType> <ptr>, <indexType>, <index>
+    store <valueType> <value>, <ptrType> <tmpReg>
 >>
 
 codeBlock(lines) ::= <<
