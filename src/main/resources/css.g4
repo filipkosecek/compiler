@@ -49,7 +49,7 @@ expression
 	| INC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #incExpr
 	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #decExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
-	| ID LEFT_BRACKET funcParamList* RIGHT_BRACKET                  #funcCallExpr
+	| ID LEFT_BRACKET funcParamList? RIGHT_BRACKET                  #funcCallExpr
 	| unOp=(MINUS | BIT_NOT | LOGICAL_NOT) expression               #unOpExpr
 	| LEFT_BRACKET TYPE RIGHT_BRACKET ID                            #typeCastExpr
 	| expression binOp=(MULT | DIV | MOD | PLUS | MINUS |

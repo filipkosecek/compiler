@@ -48,7 +48,8 @@ arrayMultiLevelIndexing(indexing) ::= <<
 <indexing; separator="\n">
 >>
 
-arrayWrite(tmpReg, valueType, value, ptrType, ptr, indexType, index, previousCode) ::= <<
+arrayWrite(tmpReg, valueType, value, ptrType, ptr, indexType, index, previousCode, expressionCode) ::= <<
+<expressionCode>
 <previousCode; separator="\n">
 <tmpReg> = getelementptr <valueType>, <ptrType> <ptr>, <indexType>, <index>
 store <valueType> <value>, <ptrType> <tmpReg>

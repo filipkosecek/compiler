@@ -66,10 +66,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             arrayIndex.add("destType", tmpDestType);
             arrayIndex.add("ptrType", ptrType);
             arrayIndex.add("indexType", globalContext.variableTypeToLLType(expression.type()));
-            if (expression.isNumericConstant())
-                arrayIndex.add("indexReg", String.valueOf(expression.numericConstantValue()));
-            else
-                arrayIndex.add("indexReg", expression.returnRegister());
+            arrayIndex.add("indexReg", expression.getValue());
             arrayIndex.add("previousCode", expression.code());
             multiLevelIndexing.add("indexing", arrayIndex.render());
         }
@@ -88,7 +85,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         String destReg = globalContext.getNewReg();
         template.add("destReg", destReg);
         template.add("destType", globalContext.variableTypeToLLType(var.getType()));
-        template.add("ptrReg", var.getLlName());
+        template.add("ptr", var.getLlName());
         template.add("ptrType",
                 globalContext.pointer(globalContext.variableTypeToLLType(var.getType()), 1));
         return new Expression(template.render(), destReg, var.getType(),
@@ -128,24 +125,59 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     @Override
     public Expression visitAssignExpr(cssParser.AssignExprContext ctx) {
         Variable var = globalContext.getVariable(ctx.ID().getText());
-        checkVariable(var, ctx.expression().size());
+        checkVariable(var, ctx.expression().size() - 1);
         Expression assignValue = visit(ctx.expression().getLast());
-        if (var.getDimensionCount() != assignValue.dimensionCount())
+        if (var.getDimensionCount() - (ctx.expression().size() - 1) != assignValue.dimensionCount())
             globalContext.handleFatalError("assign type don't match");
 
+        /* variables and references */
         if (var.getDimensionCount() == 0) {
             ST store = globalContext.templateGroup.getInstanceOf("writeExpression");
             store.add("valueType", globalContext.variableTypeToLLType(var.getType()));
-            if (assignValue.isNumericConstant())
-                store.add("value", String.valueOf(assignValue.numericConstantValue()));
-            else
-                store.add("value", assignValue.returnRegister());
+            store.add("value", assignValue.getValue());
             store.add("ptrType",
                     globalContext.pointer(globalContext.variableTypeToLLType(var.getType()), 1));
             store.add("ptr", var.getLlName());
             store.add("expressionCode", assignValue.code());
-            return new Expression(store.render(), assignValue.returnRegister(),
-                    assignValue.type(), assignValue.dimensionCount(), false, 0);
+            return new Expression(store.render(), assignValue.getValue(),
+                    assignValue.type(), assignValue.dimensionCount(), assignValue.isNumericConstant(),
+                    assignValue.numericConstantValue());
         }
+
+        if (ctx.expression().size() == 1) {
+            globalContext.assignNewRegister(ctx.ID().getText(), assignValue.getValue());
+            return new Expression(assignValue.code(), assignValue.returnRegister(),
+                    assignValue.type(), assignValue.dimensionCount(), assignValue.isNumericConstant(),
+                    assignValue.numericConstantValue());
+        }
+
+        /* arrays with access*/
+        ST arrayWrite = globalContext.templateGroup.getInstanceOf("arrayWrite");
+        ArrayList<Expression> indices = new ArrayList<>(ctx.expression().size() - 1);
+        for (int i = 0; i < ctx.expression().size() - 1; ++i) {
+            indices.add(visit(ctx.expression(i)));
+        }
+
+        Expression arrayAccess = arrayAccess(var, indices, indices.size() - 1);
+        Expression lastLevelIndex = indices.getLast();
+
+        arrayWrite.add("previousCode", arrayAccess.code());
+        arrayWrite.add("tmpReg", globalContext.getNewReg());
+        arrayWrite.add("valueType",
+                globalContext.pointer(globalContext.variableTypeToLLType(assignValue.type()),
+                        assignValue.dimensionCount()));
+        arrayWrite.add("ptrType", globalContext.pointer(
+                globalContext.variableTypeToLLType(var.getType()),
+                var.getDimensionCount() - (indices.size() - 1)
+        ));
+        arrayWrite.add("ptr", arrayAccess.returnRegister());
+        arrayWrite.add("indexType", lastLevelIndex.type());
+        arrayWrite.add("index", lastLevelIndex.getValue());
+        arrayWrite.add("value", assignValue.getValue());
+        arrayWrite.add("expressionCode", assignValue.code());
+
+        return new Expression(arrayWrite.render(), assignValue.getValue(), assignValue.type(),
+                assignValue.dimensionCount(), assignValue.isNumericConstant(),
+                assignValue.numericConstantValue());
     }
 }
