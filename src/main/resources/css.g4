@@ -45,10 +45,9 @@ codeFragment
 expression
     : base=(INT | CHAR | STRING)                                    #baseExpr
     | ID (LEFT_SQUARE expression RIGHT_SQUARE)*                     #idExpr
-	| ID ASSIGN expression                                          #assignIdExpr
-	| ID (LEFT_SQUARE expression RIGHT_SQUARE)+ ASSIGN expression   #assignArrayExpr
-	| incDec=(INC | DEC) ID                                         #incDecIdExpr
-	| incDec=(INC | DEC) ID (LEFT_SQUARE expression RIGHT_SQUARE)+  #incDecArrayExpr
+	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
+	| INC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #incExpr
+	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #decExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
 	| ID LEFT_BRACKET funcParamList* RIGHT_BRACKET                  #funcCallExpr
 	| unOp=(MINUS | BIT_NOT | LOGICAL_NOT) expression               #unOpExpr
@@ -64,7 +63,7 @@ funcParamList
 ;
 
 statement
-	: for							#statementFor
+	: while							#statementWhile
 	| if							#statementIf
 	| CONTINUE SEMICOLON					#statementCont
 	| BREAK SEMICOLON					#statementBreak
@@ -76,9 +75,8 @@ statement
 		SEMICOLON					#statementIO
 ;
 
-for
-	: FOR LEFT_BRACKET expression? SEMICOLON expression?
-	SEMICOLON expression? RIGHT_BRACKET LEFT_CURLY codeBlock RIGHT_CURLY
+while
+	: WHILE LEFT_BRACKET expression RIGHT_BRACKET LEFT_CURLY codeBlock RIGHT_CURLY
 ;
 
 if

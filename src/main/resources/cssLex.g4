@@ -13,7 +13,7 @@ NEW: 'new' ;
 DELETE: 'delete' ;
 ELIF: 'else' ' '+ 'if' ;
 ELSE: 'else' ;
-FOR: 'for' ;
+WHILE: 'while' ;
 IF: 'if' ;
 RETURN: 'return' ;
 SWITCH: 'switch' ;
