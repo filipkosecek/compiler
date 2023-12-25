@@ -221,4 +221,43 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
 
         return new Expression(arrayWrite.render(), null, null, 0, false, 0);
     }
+
+    @Override
+    public Expression visitIncDecIdExpr(cssParser.IncDecIdExprContext ctx) {
+        Variable var = globalContext.getVariable(ctx.ID().getText());
+        if (var == null || var.getDimensionCount() != 0)
+            globalContext.handleFatalError("Fail while incrementing/decrementing.");
+
+        if (var.isReference()) {
+            ST template;
+            if (ctx.incDec.getType() == cssParser.INC) {
+                template = globalContext.templateGroup.getInstanceOf("addRef");
+            } else {
+                template = globalContext.templateGroup.getInstanceOf("subtRef");
+            }
+            template.add("destType", globalContext.variableTypeToLLType(var.getType()));
+            template.add("ptrType", globalContext.pointer(globalContext.variableTypeToLLType(var.getType()), 1));
+            template.add("ptrReg", var.getLlName());
+            template.add("tmpReg", globalContext.getNewReg());
+            String tmpReg2 = globalContext.getNewReg();;
+            template.add("tmpReg2", tmpReg2);
+            template.add("value", "1");
+            return new Expression(template.render(), tmpReg2, var.getType(),
+                    0, false, 0);
+        }
+
+        ST template;
+        if (ctx.incDec.getType() == cssParser.INC)
+            template = globalContext.templateGroup.getInstanceOf("add");
+        else
+            template = globalContext.templateGroup.getInstanceOf("subtract");
+        String destReg = globalContext.getNewReg();
+        template.add("destReg", destReg);
+        template.add("type", globalContext.variableTypeToLLType(var.getType()));
+        template.add("val1", var.getLlName());
+        template.add("val2", "1");
+        globalContext.assignNewRegister(ctx.ID().getText(), destReg);
+        return new Expression(template.render(), destReg, var.getType(),
+                0, false, 0);
+    }
 }

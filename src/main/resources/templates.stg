@@ -24,31 +24,43 @@ functionDef(returnType, name, argumentList, code) ::= <<
 	{
 	<code>
 	}
-
 >>
 
 store(valueType, valueReg, ptrType, ptrReg, previousCode) ::= <<
     <previousCode>
     store <valueType> <valueReg>, <ptrType> <ptrReg>
-
 >>
 
 add(destReg, type, val1, val2, previousCode) ::= <<
     <previousCode>
     <destReg> = add <type> <val1>, <val2>
+>>
 
+subtract(destReg, type, val1, val2, previousCode) ::= <<
+    <previousCode>
+    <destReg> = add <type> <val1>, <val2>
+>>
+
+addRef(destType, ptrType, ptrReg, tmpReg, tmpReg2, value) ::= <<
+<tmpReg> = load <destType>, <ptrType> <ptrReg>
+<tmpReg2> = add <destType> <tmpReg>, <value>
+store <destType> <tmpReg2>, <ptrType> <ptrReg>
+>>
+
+subtRef(destReg, destType, ptrType, ptrReg, tmpReg, tmpReg2, value) ::= <<
+<tmpReg> = load <destType>, <ptrType> <ptrReg>
+<tmpReg2> = sub <destType> <tmpReg>, <value>
+store <destType> <tmpReg2>, <ptrType> <ptrReg>
 >>
 
 dereference(destReg, destType, ptrReg, ptrType) ::= <<
     <destReg> = load <destType>, <ptrType> <ptrReg>
-
 >>
 
 arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg, previousCode) ::= <<
     <previousCode>
     <tmpReg> = getelementptr <destType>, <ptrType> <ptrReg>, <indexType> <indexReg>
     <destReg> = load <destType>, <ptrType> <tmpReg>
-
 >>
 
 arrayMultiLevelIndexing(indexing) ::= <<
