@@ -8,10 +8,6 @@ declare i32 @printf(i8*, ...)
 <programBody>
 >>
 
-globalVarDecl(name, llvmType, llvmLiteral) ::= <<
-@<name> = global <llvmType> <llvmLiteral>
->>
-
 globalString(name, size, body) ::= <<
 <name> = global [<size> x i8] c"<body>\00"
 >>
@@ -34,53 +30,30 @@ define <returnType> @<name>(<argumentList>)
 }
 >>
 
-store(valueType, valueReg, ptrType, ptrReg, previousCode) ::= <<
-<previousCode>
-store <valueType> <valueReg>, <ptrType> <ptrReg>
+dereference(destType, destReg, ptrType, ptr) ::= <<
+<destReg> = load <destType>, <ptrType> <ptr>
 >>
 
-add(destReg, type, val1, val2, previousCode) ::= <<
-<previousCode>
-<destReg> = add <type> <val1>, <val2>
->>
-
-subtract(destReg, type, val1, val2, previousCode) ::= <<
-    <previousCode>
-    <destReg> = add <type> <val1>, <val2>
->>
-
-addRef(destType, ptrType, ptrReg, tmpReg, tmpReg2, value) ::= <<
-<tmpReg> = load <destType>, <ptrType> <ptrReg>
-<tmpReg2> = add <destType> <tmpReg>, <value>
-store <destType> <tmpReg2>, <ptrType> <ptrReg>
->>
-
-subtRef(destReg, destType, ptrType, ptrReg, tmpReg, tmpReg2, value) ::= <<
-<tmpReg> = load <destType>, <ptrType> <ptrReg>
-<tmpReg2> = sub <destType> <tmpReg>, <value>
-store <destType> <tmpReg2>, <ptrType> <ptrReg>
->>
-
-dereference(destReg, destType, ptrReg, ptrType) ::= <<
-    <destReg> = load <destType>, <ptrType> <ptrReg>
+writeExpression(valueType, value, ptrType, ptr, expressionCode) ::= <<
+<expressionCode>
+store <valueType> <value>, <ptrType> <ptr>
 >>
 
 arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg, previousCode) ::= <<
-    <previousCode>
-    <tmpReg> = getelementptr <destType>, <ptrType> <ptrReg>, <indexType> <indexReg>
-    <destReg> = load <destType>, <ptrType> <tmpReg>
+<tmpReg> = getelementptr <destType>, <ptrType> <ptrReg>, <indexType> <indexReg>
+<destReg> = load <destType>, <ptrType> <tmpReg>
 >>
 
 arrayMultiLevelIndexing(indexing) ::= <<
-    <indexing; separator="\n">
+<indexing; separator="\n">
 >>
 
 arrayWrite(tmpReg, valueType, value, ptrType, ptr, indexType, index, previousCode) ::= <<
-    <previousCode; separator="\n">
-    <tmpReg> = getelementptr <valueType>, <ptrType> <ptr>, <indexType>, <index>
-    store <valueType> <value>, <ptrType> <tmpReg>
+<previousCode; separator="\n">
+<tmpReg> = getelementptr <valueType>, <ptrType> <ptr>, <indexType>, <index>
+store <valueType> <value>, <ptrType> <tmpReg>
 >>
 
 codeBlock(lines) ::= <<
-    <lines; separator="\n">
+<lines; separator="\n">
 >>
