@@ -64,7 +64,10 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             arrayIndex.add("destType", tmpDestType);
             arrayIndex.add("ptrType", ptrType);
             arrayIndex.add("indexType", globalContext.variableTypeToLLType(expression.type()));
-            arrayIndex.add("indexReg", expression.returnRegister());
+            if (expression.isNumericConstant())
+                arrayIndex.add("indexReg", String.valueOf(expression.numericConstantValue()));
+            else
+                arrayIndex.add("indexReg", expression.returnRegister());
             sb.append(arrayIndex.render());
         }
 
