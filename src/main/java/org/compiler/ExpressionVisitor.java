@@ -162,13 +162,16 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (var.isReference())
             return assignToReference(var, value);
 
+        if (!value.isNumericConstant()) {
+            globalContext.assignNewRegister(ctx.ID().getText(), value.returnRegister());
+            return new Expression("", value.returnRegister(), var.getType(), var.getDimensionCount(),
+                    false, 0);
+        }
+
         ST template = globalContext.templateGroup.getInstanceOf("add");
         template.add("previousCode", value.code());
         template.add("type", globalContext.variableTypeToLLType(var.getType()));
-        if (value.isNumericConstant())
-            template.add("val1", String.valueOf(value.numericConstantValue()));
-        else
-            template.add("val1", value.returnRegister());
+        template.add("val1", String.valueOf(value.numericConstantValue()));
         template.add("val2", "0");
         String destReg = globalContext.getNewReg();
         template.add("destReg", destReg);
