@@ -15,17 +15,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	@Override
 	public String visitProgram(cssParser.ProgramContext ctx) {
 		ST programBodyTemplate = globalContext.templateGroup.getInstanceOf("program");
-		StringBuilder sb = new StringBuilder();
-		/*
-		for (int i = 0; i < ctx.varDeclBlock().size(); ++i) {
-			programBodyTemplate.add("globalContext", visit(ctx.varDeclBlock(i)).code);
-		}
-		*/
-		for (int i = 0; i < ctx.function().size(); ++i) {
-			sb.append(visit(ctx.function(i)));
-			sb.append('\n');
-		}
-		programBodyTemplate.add("programBody", sb.toString());
+		for (int i = 0; i < ctx.function().size(); ++i)
+			programBodyTemplate.add("programBody", visit(ctx.function(i)));
 		return programBodyTemplate.render();
 	}
 
@@ -57,5 +48,20 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		globalContext.popScope();
 
 		return functionDef.render();
+	}
+
+	@Override
+	public String visitCodeBlock(cssParser.CodeBlockContext ctx) {
+		ST template = globalContext.templateGroup.getInstanceOf("codeBlock");
+		for (int i = 0; i < ctx.codeFragment().size(); ++i) {
+			template.add("lines", visit(ctx.codeFragment(i)));
+		}
+		return template.render();
+	}
+
+	@Override
+	public String visitCodeFragmentExpr(cssParser.CodeFragmentExprContext ctx) {
+		Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
+		return expression.code();
 	}
 }

@@ -19,27 +19,31 @@ functionDef(returnType, name, argumentList, code) ::= <<
 >>
 
 assign(reg, value) ::= <<
-    %<reg> = <value>
+    <reg> = <value>
 
 >>
 
 store(valueType, valueReg, ptrType, ptrReg) ::= <<
-    store <valueType> %<valueReg>, <ptrType> %<ptrReg>
+    store <valueType> <valueReg>, <ptrType> <ptrReg>
 
 >>
 
-add(val1, val2) ::= <<
-    add <val1>, <val2>
+add(destReg, type, val1, val2) ::= <<
+    <destReg> = add <type> <val1>, <val2>
 
 >>
 
 dereference(destReg, destType, ptrReg, ptrType) ::= <<
-    %<destReg> = load <destType>, <ptrType> %<ptrReg>
+    <destReg> = load <destType>, <ptrType> <ptrReg>
 
 >>
 
 arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg) ::= <<
-    %<tmpReg> = getelementptr <destType>, <ptrType> %<ptrReg>, <indexType> %<indexReg>
-    %<destReg> = load <destType>, <ptrType> %<tmpReg>
+    <tmpReg> = getelementptr <destType>, <ptrType> <ptrReg>, <indexType> <indexReg>
+    <destReg> = load <destType>, <ptrType> <tmpReg>
 
+>>
+
+codeBlock(lines) ::= <<
+    <lines>
 >>

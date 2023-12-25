@@ -31,7 +31,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             case cssParser.INT:
                 template = globalContext.templateGroup.getInstanceOf("assign");
                 reg = globalContext.getNewReg();
-                return new Expression("%" + reg, reg, "int", 0,
+                return new Expression(reg, reg, "int", 0,
                         true, Integer.parseInt(ctx.INT().getText()));
         }
         return null;
@@ -102,9 +102,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     }
 
     private Expression assignToReference(Variable var, Expression expression) {
-        ST template = globalContext.templateGroup.getInstanceOf("assign");
+        ST template = globalContext.templateGroup.getInstanceOf("store");
         template.add("valueType", globalContext.variableTypeToLLType(expression.type()));
-        template.add("valueReg", expression.returnRegister());
+        if (expression.isNumericConstant())
+            template.add("valueReg", String.valueOf(expression.numericConstantValue()));
+        else
+            template.add("valueReg", expression.returnRegister());
         template.add("ptrType", globalContext.pointer(globalContext.variableTypeToLLType(var.getType()), 1));
         template.add("ptrReg", var.getLlName());
         return new Expression(template.render(), expression.returnRegister(),
@@ -127,13 +130,17 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (var.isReference())
             return assignToReference(var, value);
 
-        String newReg = globalContext.getNewReg();
-        ST template = globalContext.templateGroup.getInstanceOf("assign");
-        template.add("reg", newReg);
-        template.add("value", value.returnRegister());
-        globalContext.assignNewRegister(ctx.ID().getText(), newReg);
-        String returnCode = value.code() + template.render();
-        return new Expression(returnCode, newReg, var.getType(),
-                var.getDimensionCount(), false, 0);
+        ST template = globalContext.templateGroup.getInstanceOf("add");
+        template.add("type", globalContext.variableTypeToLLType(var.getType()));
+        if (value.isNumericConstant())
+            template.add("val1", String.valueOf(value.numericConstantValue()));
+        else
+            template.add("val1", value.returnRegister());
+        template.add("val2", "0");
+        String destReg = globalContext.getNewReg();
+        template.add("destReg", destReg);
+        globalContext.assignNewRegister(ctx.ID().getText(), destReg);
+        return new Expression(template.render(), destReg, var.getType(), 0,
+                false, 0);
     }
 }

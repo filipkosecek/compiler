@@ -86,7 +86,7 @@ public class GlobalContext {
     }
 
     public String getNewReg() {
-        return String.format("reg%d", idCounter++);
+        return String.format("%%reg%d", idCounter++);
     }
 
     public String genNewLabel() {

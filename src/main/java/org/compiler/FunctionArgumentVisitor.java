@@ -27,7 +27,8 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     @Override
     public Variable visitFuncArgClassic(cssParser.FuncArgClassicContext ctx) {
         checkVoidType(ctx.TYPE().getText());
-        Variable var = new Variable(globalContext.getNewReg(), ctx.TYPE().getText(), getDimensionCount(ctx), false);
+        Variable var = new Variable(globalContext.getNewReg(),
+                ctx.TYPE().getText(), getDimensionCount(ctx), false);
         globalContext.addToLastScope(ctx.ID().getText(), var);
         return var;
     }
@@ -35,7 +36,8 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     @Override
     public Variable visitFuncArgReference(cssParser.FuncArgReferenceContext ctx) {
         checkVoidType(ctx.TYPE().getText());
-        Variable var = new Variable(globalContext.getNewReg(), ctx.TYPE().getText(), 0, true);
+        Variable var = new Variable(globalContext.getNewReg(),
+                ctx.TYPE().getText(), 0, true);
         globalContext.addToLastScope(ctx.ID().getText(), var);
         return var;
     }

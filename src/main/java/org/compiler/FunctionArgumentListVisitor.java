@@ -28,7 +28,7 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
             }
             if (arg.isReference())
                 sb.append('*');
-            sb.append(" %");
+            sb.append(" ");
             sb.append(arg.getLlName());
         }
         return sb.toString();
