@@ -24,8 +24,18 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         String reg;
         switch (ctx.base.getType()) {
             case cssParser.STRING:
-                //TODO
-                break;
+                String name = globalContext.getNewGlobalStringName();
+                String destReg = globalContext.getNewReg();
+                ST code = globalContext.templateGroup.getInstanceOf("globalStringAccess");
+                code.add("dest", destReg);
+                code.add("size", String.valueOf(ctx.STRING().getText().length() - 2 + 1));
+                code.add("name", name);
+                StringBuilder sb = new StringBuilder(ctx.STRING().getText());
+                sb.deleteCharAt(ctx.STRING().getText().length() - 1);
+                sb.deleteCharAt(0);
+                globalContext.globalStrings.put(name, sb.toString());
+                return new Expression(code.render(), destReg, "byte",
+                        1, false, 0);
             case cssParser.CHAR:
                 template = globalContext.templateGroup.getInstanceOf("assign");
                 reg = globalContext.getNewReg();

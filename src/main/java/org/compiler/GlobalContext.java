@@ -14,6 +14,9 @@ public class GlobalContext {
     /* scope information */
     private final LinkedList<ScopeInfo> scopeStack = new LinkedList<>();
     private final HashMap<String, Function> functions = new HashMap<>();
+    public final HashMap<String, String> globalStrings = new HashMap<>();
+    private int globalStringCounter = 1;
+
 
     public boolean containsFunction(String functionName) {
         return functions.containsKey(functionName);
@@ -87,6 +90,10 @@ public class GlobalContext {
 
     public String getNewReg() {
         return String.format("%%reg%d", idCounter++);
+    }
+
+    public String getNewGlobalStringName() {
+        return String.format("@str%d", globalStringCounter++);
     }
 
     public String genNewLabel() {

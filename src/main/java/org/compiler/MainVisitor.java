@@ -21,6 +21,15 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		ST programBodyTemplate = globalContext.templateGroup.getInstanceOf("program");
 		for (int i = 0; i < ctx.function().size(); ++i)
 			programBodyTemplate.add("programBody", visit(ctx.function(i)));
+		//TODO add global variables to template
+		for (String s : globalContext.globalStrings.keySet()) {
+			ST globString = globalContext.templateGroup.getInstanceOf("globalString");
+			globString.add("name", s);
+			String body = globalContext.globalStrings.get(s);
+			globString.add("size", String.valueOf(body.length() + 1));
+			globString.add("body", body);
+			programBodyTemplate.add("globalVariables", globString.render());
+		}
 		return programBodyTemplate.render();
 	}
 
