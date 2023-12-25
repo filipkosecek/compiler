@@ -66,7 +66,6 @@ funcParamList
 statement
 	: for							#statementFor
 	| if							#statementIf
-	| switch						#statementSwitch
 	| CONTINUE SEMICOLON					#statementCont
 	| BREAK SEMICOLON					#statementBreak
 	| RETURN expression SEMICOLON				#statementReturn
@@ -94,17 +93,4 @@ elif
 
 else
 	: ELSE LEFT_CURLY codeBlock RIGHT_CURLY
-;
-
-switch
-	: SWITCH LEFT_BRACKET expression RIGHT_BRACKET LEFT_CURLY
-	case+ defaultCase? RIGHT_CURLY
-;
-
-case
-	: CASE expression COLON codeBlock
-;
-
-defaultCase
-	: DEFAULT COLON codeBlock
 ;
