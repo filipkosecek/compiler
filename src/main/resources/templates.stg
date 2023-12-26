@@ -40,7 +40,8 @@ writeExpression(valueType, value, ptrType, ptr, expressionCode) ::= <<
 store <valueType> <value>, <ptrType> <ptr>
 >>
 
-arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg, previousCode) ::= <<
+arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg, expressionCode) ::= <<
+<expressionCode>
 <tmpReg> = getelementptr <destType>, <ptrType> <ptrReg>, <indexType> <indexReg>
 <destReg> = load <destType>, <ptrType> <tmpReg>
 >>

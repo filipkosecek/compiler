@@ -67,7 +67,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             arrayIndex.add("ptrType", ptrType);
             arrayIndex.add("indexType", globalContext.variableTypeToLLType(expression.type()));
             arrayIndex.add("indexReg", expression.getValue());
-            arrayIndex.add("previousCode", expression.code());
+            arrayIndex.add("expressionCode", expression.code());
             multiLevelIndexing.add("indexing", arrayIndex.render());
         }
 
