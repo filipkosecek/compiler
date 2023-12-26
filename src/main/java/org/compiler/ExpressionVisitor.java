@@ -343,4 +343,64 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         }
         return null;
     }
+
+    private Expression genBinOpExpr(String templateName, String expressionCode,
+                                    Expression first, Expression second) {
+        String destReg = globalContext.getNewReg();
+        ST template = globalContext.templateGroup.getInstanceOf(templateName);
+        template.add("destReg", destReg);
+        template.add("type", globalContext.variableTypeToLLType(first.type()));
+        template.add("value1", first.getValue());
+        template.add("value2", second.getValue());
+        return new Expression(expressionCode + template.render(), destReg,
+                first.type(), 0, false, 0);
+    }
+
+    @Override
+    public Expression visitBinOpExpr(cssParser.BinOpExprContext ctx) {
+        Expression first = visit(ctx.expression(0));
+        Expression second = visit(ctx.expression(1));
+        if (!first.type().equals(second.type()) ||
+                first.dimensionCount() != second.dimensionCount() ||
+                first.dimensionCount() != 0)
+            globalContext.handleFatalError("type mismatch");
+
+        String expressionCode = first + "\n" + second;
+        String templateName = "";
+
+        switch (ctx.binOp.getType()) {
+            case cssParser.MULT:
+                if (first.isNumericConstant() && second.isNumericConstant())
+                    return new Expression(expressionCode, "", first.type(),
+                            0, true,
+                            first.numericConstantValue() * second.numericConstantValue());
+                templateName = "multiplication";
+                break;
+            case cssParser.PLUS:
+                if (first.isNumericConstant() && second.isNumericConstant())
+                    return new Expression(expressionCode, "", first.type(),
+                            0, true,
+                            first.numericConstantValue() + second.numericConstantValue());
+                templateName = "addition";
+                break;
+            case cssParser.DIV:
+                if (first.isNumericConstant() && second.isNumericConstant()) {
+                    if (second.numericConstantValue() == 0)
+                        throw new RuntimeException("bad things happen");
+                    return new Expression(expressionCode, "", first.type(),
+                            0, true,
+                            first.numericConstantValue() / second.numericConstantValue());
+                }
+                templateName = "division";
+                break;
+            case cssParser.MINUS:
+                if (first.isNumericConstant() && second.isNumericConstant())
+                    return new Expression(expressionCode, "", first.type(),
+                            0, true,
+                            first.numericConstantValue() - second.numericConstantValue());
+                templateName = "subtract";
+                break;
+        }
+        return genBinOpExpr(templateName, expressionCode, first, second);
+    }
 }

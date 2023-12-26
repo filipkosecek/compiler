@@ -92,3 +92,11 @@ logicalNot(destReg, type, value, valueCode) ::= <<
 subtract(destReg, type, value1, value2) ::= <<
 <destReg> = sub <type> <value1>, <value2>
 >>
+
+multiplication(destReg, type, value1, value2) ::= <<
+<destReg> = mul <type> <value1>, <value2>
+>>
+
+addition(destReg, type, value1, value2) ::= <<
+<destReg> = add <type> <value1>, <value2>
+>>
