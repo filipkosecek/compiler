@@ -59,9 +59,9 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             arrayIndex.add("tmpReg", globalContext.getNewReg());
             arrayIndex.add("destReg", destReg);
             arrayIndex.add("ptrReg", ptrReg);
-            String ptrType = globalContext.pointer(globalContext.variableTypeToLLType(var.getType()),
+            String ptrType = globalContext.llPointer(var.getType(),
                     var.getDimensionCount() - i);
-            String tmpDestType = globalContext.pointer(globalContext.variableTypeToLLType(var.getType()),
+            String tmpDestType = globalContext.llPointer(var.getType(),
                     var.getDimensionCount() - i - 1);
             arrayIndex.add("destType", tmpDestType);
             arrayIndex.add("ptrType", ptrType);
@@ -87,7 +87,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         template.add("destType", globalContext.variableTypeToLLType(var.getType()));
         template.add("ptr", var.getLlName());
         template.add("ptrType",
-                globalContext.pointer(globalContext.variableTypeToLLType(var.getType()), 1));
+                globalContext.llPointer(var.getType(), 1));
         return new Expression(template.render(), destReg, var.getType(),
                 0, false, 0);
     }
@@ -136,7 +136,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             store.add("valueType", globalContext.variableTypeToLLType(var.getType()));
             store.add("value", assignValue.getValue());
             store.add("ptrType",
-                    globalContext.pointer(globalContext.variableTypeToLLType(var.getType()), 1));
+                    globalContext.llPointer(var.getType(), 1));
             store.add("ptr", var.getLlName());
             store.add("expressionCode", assignValue.code());
             return new Expression(store.render(), assignValue.getValue(),
@@ -164,10 +164,10 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         arrayWrite.add("previousCode", arrayAccess.code());
         arrayWrite.add("tmpReg", globalContext.getNewReg());
         arrayWrite.add("valueType",
-                globalContext.pointer(globalContext.variableTypeToLLType(assignValue.type()),
+                globalContext.llPointer(assignValue.type(),
                         assignValue.dimensionCount()));
-        arrayWrite.add("ptrType", globalContext.pointer(
-                globalContext.variableTypeToLLType(var.getType()),
+        arrayWrite.add("ptrType", globalContext.llPointer(
+                var.getType(),
                 var.getDimensionCount() - (indices.size() - 1)
         ));
         arrayWrite.add("ptr", arrayAccess.returnRegister());

@@ -1,6 +1,5 @@
 package org.compiler;
 
-import org.gen.cssParser;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupFile;
 
@@ -100,7 +99,8 @@ public class GlobalContext {
         return String.format("label%d", idCounter++);
     }
 
-    public String pointer(String llType, int n) {
+    public String llPointer(String sourceType, int n) {
+        String llType = variableTypeToLLType(sourceType);
         StringBuilder sb = new StringBuilder(llType);
         for (int i = 0; i < n; ++i) {
             sb.append('*');

@@ -59,7 +59,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			paramInit.add("destReg", destReg);
 			paramInit.add("type", arg.getType());
 			paramInit.add("ptrType",
-					globalContext.pointer(globalContext.variableTypeToLLType(arg.getType()), 1));
+					globalContext.llPointer(arg.getType(), 1));
 			paramInit.add("initValue", arg.getLlName());
 			arg.setLlName(destReg);
 			functionDef.add("paramInit", paramInit.render());
