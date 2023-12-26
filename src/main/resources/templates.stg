@@ -70,3 +70,15 @@ functionCall(destReg, returnValue, returnType, id, argList, computeParameters) :
 <else>call <returnType> <id>(<argList>)
 <endif>
 >>
+
+zeroExtend(destReg, srcType, value, destType) ::= <<
+<destReg> = zext <srcType> <value> to <destType>
+>>
+
+signExtend(destReg, srcType, value, destType) ::= <<
+<destReg> = sext <srcType> <value> to <destType>
+>>
+
+truncate(destReg, srcType, value, destType) ::= <<
+<destReg> = trunc <srcType> <value> to <destType>
+>>

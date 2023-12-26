@@ -130,6 +130,9 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (var.getDimensionCount() - (ctx.expression().size() - 1) != assignValue.dimensionCount())
             globalContext.handleFatalError("assign type don't match");
 
+        if (!var.getType().equals(assignValue.type()))
+            globalContext.handleFatalError("types don't match");
+
         /* variables and references */
         if (var.getDimensionCount() == 0) {
             ST store = globalContext.templateGroup.getInstanceOf("writeExpression");
@@ -144,6 +147,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                     assignValue.numericConstantValue());
         }
 
+        /* assigning array to array */
         if (ctx.expression().size() == 1) {
             globalContext.assignNewRegister(ctx.ID().getText(), assignValue.getValue());
             return new Expression(assignValue.code(), assignValue.returnRegister(),
@@ -228,5 +232,75 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         }
         return new Expression(functionCall.render(), destReg, function.getReturnType(),
                 0, false, 0);
+    }
+
+    @Override
+    public Expression visitTypeCastExpr(cssParser.TypeCastExprContext ctx) {
+        Expression variable = visit(ctx.variable());
+        String destinationType = ctx.TYPE().getText();
+        String sourceType = variable.type();
+        int destinationDimensionCount = ctx.LEFT_SQUARE().size();
+        if (destinationDimensionCount != variable.dimensionCount())
+            globalContext.handleFatalError("cannot type cast to another level");
+
+        if (sourceType.equals(destinationType))
+            return variable;
+
+        /* array is type cast just as pointers are in C,
+         * i.e. the underlying value is left untouched
+         */
+        if (destinationDimensionCount > 0)
+            return new Expression(variable.code(), variable.returnRegister(),
+                    destinationType, variable.dimensionCount(),
+                    false, 0);
+
+        if (
+                (sourceType.equals("byte") && destinationType.equals("ubyte")) ||
+                (sourceType.equals("ubyte") && destinationType.equals("byte")) ||
+                (sourceType.equals("int") && destinationType.equals("uint"))   ||
+                (sourceType.equals("uint") && destinationType.equals("int"))
+        )
+            return new Expression(variable.code(), variable.returnRegister(),
+                    destinationType, variable.dimensionCount(),
+                    variable.isNumericConstant(), variable.numericConstantValue());
+
+        if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("int")) {
+            ST sext = globalContext.templateGroup.getInstanceOf("signExtend");
+            String destReg = globalContext.getNewReg();
+            sext.add("destReg", destReg);
+            sext.add("value", variable.getValue());
+            sext.add("srcType", globalContext.variableTypeToLLType(sourceType));
+            sext.add("destType", globalContext.variableTypeToLLType(destinationType));
+            return new Expression(variable.code() + "\n" + sext.render(), destReg,
+                    destinationType, 0,
+                    variable.isNumericConstant(), variable.numericConstantValue());
+        }
+
+        if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("uint")) {
+            ST zext = globalContext.templateGroup.getInstanceOf("zeroExtend");
+            String destReg = globalContext.getNewReg();
+            zext.add("destReg", destReg);
+            zext.add("value", variable.getValue());
+            zext.add("srcType", globalContext.variableTypeToLLType(sourceType));
+            zext.add("destType", globalContext.variableTypeToLLType(destinationType));
+            return new Expression(variable.code() + "\n" + zext.render(), destReg,
+                    destinationType, 0,
+                    variable.isNumericConstant(), variable.numericConstantValue());
+        }
+
+        if ((sourceType.equals("int") || sourceType.equals("uint")) &&
+                destinationType.equals("byte") || destinationType.equals("ubyte")) {
+            ST trunc = globalContext.templateGroup.getInstanceOf("truncate");
+            String destReg = globalContext.getNewReg();
+            trunc.add("destReg", destReg);
+            trunc.add("srcType", globalContext.variableTypeToLLType(sourceType));
+            trunc.add("destType", globalContext.variableTypeToLLType(destinationType));
+            trunc.add("value", variable.getValue());
+            return new Expression(variable.code() + "\n" + trunc.render(), destReg,
+                    destinationType, 0,
+                    variable.isNumericConstant(), variable.numericConstantValue());
+        }
+        /* all cases should be covered */
+        return null;
     }
 }
