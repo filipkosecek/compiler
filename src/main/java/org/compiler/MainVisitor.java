@@ -65,7 +65,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			ST paramInit = globalContext.templateGroup.getInstanceOf("paramInit");
 			String destReg = globalContext.getNewReg();
 			paramInit.add("destReg", destReg);
-			paramInit.add("type", arg.getType());
+			paramInit.add("type", globalContext.variableTypeToLLType(arg.getType()));
 			paramInit.add("ptrType",
 					globalContext.llPointer(arg.getType(), 1));
 			paramInit.add("initValue", arg.getLlName());
