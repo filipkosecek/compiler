@@ -54,12 +54,14 @@ expression
 	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #decExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
 	| ID LEFT_BRACKET funcParamList? RIGHT_BRACKET                  #funcCallExpr
-	| unOp=(MINUS | BIT_NOT | LOGICAL_NOT) expression               #unOpExpr
+	| unOp=(MINUS | LOGICAL_NOT) expression                         #unOpExpr
 	| LEFT_BRACKET TYPE (LEFT_SQUARE RIGHT_SQUARE)*
 	RIGHT_BRACKET variable                                          #typeCastExpr
-	| expression binOp=(MULT | DIV | MOD | PLUS | MINUS |
-	SHIFT_LEFT | SHIFT_RIGHT | LT | LTE | GT | GTE | EQ | NEQ
-	| AMPERSAND | LOGICAL_OR | LOGICAL_AND) expression              #binOpExpr
+	| expression binOp=(MULT | DIV | MOD) expression                #binOpExpr
+	| expression binOp=(PLUS | MINUS) expression                    #binOpExpr
+	| expression binOp=(LT | LTE | GT | GTE | EQ | NEQ) expression  #binOpExpr
+	| expression binOp=LOGICAL_AND expression                       #binOpExpr
+	| expression binOp=LOGICAL_OR expression                        #binOpExpr
 	| NEW TYPE (LEFT_SQUARE expression RIGHT_SQUARE)*               #allocExpr
 ;
 
