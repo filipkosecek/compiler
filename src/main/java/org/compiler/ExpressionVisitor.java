@@ -303,22 +303,44 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         /* all cases should be covered */
         return null;
     }
-/*
+
     @Override
     public Expression visitUnOpExpr(cssParser.UnOpExprContext ctx) {
         Expression expression = visit(ctx.expression());
+        if (expression.dimensionCount() != 0)
+            globalContext.handleFatalError("Unary operators can only be applied on non-array expressions.");
+
+        String destReg = globalContext.getNewReg();
         switch (ctx.unOp.getType()) {
             case cssParser.LOGICAL_NOT:
                 if (expression.isNumericConstant())
                     return new Expression(expression.code(), expression.returnRegister(),
                             expression.type(), expression.dimensionCount(),
                             expression.isNumericConstant(), expression.numericConstantValue() != 0 ? 1 : 0);
-            case cssParser.BIT_NOT:
+
+                ST logNot = globalContext.templateGroup.getInstanceOf("logicalNot");
+                logNot.add("type", globalContext.variableTypeToLLType(expression.type()));
+                logNot.add("value", expression.getValue());
+                logNot.add("destReg", destReg);
+                logNot.add("valueCode", expression.code());
+                return new Expression(logNot.render(), destReg, expression.type(),
+                        0, false, 0);
+            case cssParser.MINUS:
+                //TODO unsigned type shouldn't become negative
                 if (expression.isNumericConstant())
                     return new Expression(expression.code(), expression.returnRegister(),
                             expression.type(), expression.dimensionCount(),
-                            expression.isNumericConstant(), ~expression.numericConstantValue());
+                            expression.isNumericConstant(), -expression.numericConstantValue());
+
+                ST minus = globalContext.templateGroup.getInstanceOf("subtract");
+                minus.add("destReg", destReg);
+                minus.add("type", globalContext.variableTypeToLLType(expression.type()));
+                minus.add("value1", "0");
+                minus.add("value2", expression.getValue());
+                String resultCode = expression.code() + "\n" + minus.render();
+                return new Expression(resultCode, destReg, expression.type(),
+                        0, false, 0);
         }
+        return null;
     }
-    */
 }

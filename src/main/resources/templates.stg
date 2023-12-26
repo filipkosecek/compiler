@@ -82,3 +82,12 @@ signExtend(destReg, srcType, value, destType) ::= <<
 truncate(destReg, srcType, value, destType) ::= <<
 <destReg> = trunc <srcType> <value> to <destType>
 >>
+
+logicalNot(destReg, type, value, valueCode) ::= <<
+<valueCode>
+<destReg> = icmp eq <type> 0, <value>
+>>
+
+subtract(destReg, type, value1, value2) ::= <<
+<destReg> = sub <type> <value1>, <value2>
+>>
