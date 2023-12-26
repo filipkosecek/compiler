@@ -42,16 +42,21 @@ codeFragment
 	| varDeclBlock		#codeFragmentVarDecl
 ;
 
+variable
+    : ID (LEFT_SQUARE expression RIGHT_SQUARE)*
+;
+
 expression
     : base=(INT | CHAR | STRING)                                    #baseExpr
-    | ID (LEFT_SQUARE expression RIGHT_SQUARE)*                     #idExpr
+    | variable                                                      #idExpr
 	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
 	| INC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #incExpr
 	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #decExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
 	| ID LEFT_BRACKET funcParamList? RIGHT_BRACKET                  #funcCallExpr
 	| unOp=(MINUS | BIT_NOT | LOGICAL_NOT) expression               #unOpExpr
-	| LEFT_BRACKET TYPE RIGHT_BRACKET ID                            #typeCastExpr
+	| LEFT_BRACKET TYPE (LEFT_SQUARE RIGHT_SQUARE)*
+	RIGHT_BRACKET variable                                          #typeCastExpr
 	| expression binOp=(MULT | DIV | MOD | PLUS | MINUS |
 	SHIFT_LEFT | SHIFT_RIGHT | LT | LTE | GT | GTE | EQ | NEQ
 	| AMPERSAND | LOGICAL_OR | LOGICAL_AND) expression              #binOpExpr

@@ -104,7 +104,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
      * Return value of a variable or array.
      */
     @Override
-    public Expression visitIdExpr(cssParser.IdExprContext ctx) {
+    public Expression visitVariable(cssParser.VariableContext ctx) {
         Variable var = globalContext.getVariable(ctx.ID().getText());
         checkVariable(var, ctx.expression().size());
 
