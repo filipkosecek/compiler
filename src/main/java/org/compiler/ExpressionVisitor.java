@@ -303,4 +303,22 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         /* all cases should be covered */
         return null;
     }
+/*
+    @Override
+    public Expression visitUnOpExpr(cssParser.UnOpExprContext ctx) {
+        Expression expression = visit(ctx.expression());
+        switch (ctx.unOp.getType()) {
+            case cssParser.LOGICAL_NOT:
+                if (expression.isNumericConstant())
+                    return new Expression(expression.code(), expression.returnRegister(),
+                            expression.type(), expression.dimensionCount(),
+                            expression.isNumericConstant(), expression.numericConstantValue() != 0 ? 1 : 0);
+            case cssParser.BIT_NOT:
+                if (expression.isNumericConstant())
+                    return new Expression(expression.code(), expression.returnRegister(),
+                            expression.type(), expression.dimensionCount(),
+                            expression.isNumericConstant(), ~expression.numericConstantValue());
+        }
+    }
+    */
 }
