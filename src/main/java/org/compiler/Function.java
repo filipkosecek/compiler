@@ -13,12 +13,6 @@ public class Function {
         argc = this.argList.size();
     }
 
-    public Function(String returnType) {
-        this.returnType = returnType;
-        this.argList = null;
-        argc = 0;
-    }
-
     public int getArgumentCount() {
         return argc;
     }

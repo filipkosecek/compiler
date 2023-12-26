@@ -5,7 +5,8 @@ declare i32 @scanf(i8*, ...)
 declare i32 @printf(i8*, ...)
 
 <globalVariables; separator="\n">
-<programBody>
+
+<programBody; separator="\n\n">
 >>
 
 globalString(name, size, body) ::= <<
@@ -57,4 +58,15 @@ store <valueType> <value>, <ptrType> <tmpReg>
 
 codeBlock(lines) ::= <<
 <lines; separator="\n">
+>>
+
+argList(arg) ::= <<
+<arg; separator=", ">
+>>
+
+functionCall(destReg, returnValue, returnType, id, argList, computeParameters) ::= <<
+<computeParameters>
+<if(returnValue)><destReg> = call <returnType> <id>(<argList>)
+<else>call <returnType> <id>(<argList>)
+<endif>
 >>

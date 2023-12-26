@@ -25,6 +25,10 @@ public class GlobalContext {
         functions.put(functionName, function);
     }
 
+    public Function getFunction(String id) {
+        return functions.get(id);
+    }
+
     public boolean isVariableDeclared(String id) {
         Iterator<ScopeInfo> reverse = scopeStack.descendingIterator();
         while (reverse.hasNext()) {

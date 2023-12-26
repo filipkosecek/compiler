@@ -42,15 +42,23 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 		globalContext.addNewScope();
 
-		Pair<List<Variable>, String> pair = functionArgumentListVisitor.visit(ctx.argList());
+		List<Variable> argList;
+		String argListCode;
+		if (ctx.argList() != null) {
+			Pair<List<Variable>, String> pair = functionArgumentListVisitor.visit(ctx.argList());
+			argList = pair.p1;
+			argListCode = pair.p2;
+		} else {
+			argList = List.of();
+			argListCode = "";
+		}
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
 		functionDef.add("returnType", globalContext.variableTypeToLLType(ctx.TYPE().getText()));
 		functionDef.add("name", ctx.ID().getText());
 		functionDef.add("label", globalContext.genNewLabel());
-		functionDef.add("argumentList", pair.p2);
+		functionDef.add("argumentList", argListCode);
 		functionDef.add("code", visit(ctx.codeBlock()));
 
-		List<Variable> argList = pair.p1;
 		for (Variable arg : argList) {
 			if (arg.isReference() || arg.getDimensionCount() > 0)
 				continue;
@@ -66,7 +74,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		}
 
 		globalContext.addFunctionToGlobalContext(ctx.ID().getText(),
-				new Function(globalContext.variableTypeToLLType(ctx.TYPE().getText())));
+				new Function(ctx.TYPE().getText(), argList));
 
 		globalContext.popScope();
 

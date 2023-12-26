@@ -180,4 +180,53 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 assignValue.dimensionCount(), assignValue.isNumericConstant(),
                 assignValue.numericConstantValue());
     }
+
+    @Override
+    public Expression visitSubExpr(cssParser.SubExprContext ctx) {
+        return visit(ctx.expression());
+    }
+
+    @Override
+    public Expression visitFuncCallExpr(cssParser.FuncCallExprContext ctx) {
+        Function function = globalContext.getFunction(ctx.ID().getText());
+        if (function == null)
+            globalContext.handleFatalError("function declaration must precede its first use");
+
+        String argList = "";
+        StringBuilder code = new StringBuilder();
+        if (ctx.funcParamList() != null) {
+            ST argListTemplate = globalContext.templateGroup.getInstanceOf("argList");
+            List<Expression> parameters = new FuncParamListVisitor(globalContext).visit(ctx.funcParamList());
+            List<Variable> signature = function.getArguments();
+            if (parameters.size() != function.getArgumentCount())
+                globalContext.handleFatalError("Function argument count does not match.");
+
+            for (int i = 0; i < parameters.size(); ++i) {
+                Variable signatureVar = signature.get(i);
+                Expression parameter = parameters.get(i);
+                if (!parameter.type().equals(signatureVar.getType()) ||
+                        parameter.dimensionCount() != signatureVar.getDimensionCount())
+                    globalContext.handleFatalError("Signature does not match.");
+                String parameterType = globalContext.llPointer(parameter.type(), parameter.dimensionCount());
+                argListTemplate.add("arg", parameterType + " " + parameter.getValue());
+                code.append(parameter.code());
+                code.append('\n');
+            }
+            argList = argListTemplate.render();
+        }
+
+        ST functionCall = globalContext.templateGroup.getInstanceOf("functionCall");
+        functionCall.add("returnType", globalContext.variableTypeToLLType(function.getReturnType()));
+        functionCall.add("id", ctx.ID().getText());
+        functionCall.add("argList", argList);
+        functionCall.add("computeParameters", code.toString());
+        String destReg = "";
+        if (!function.getReturnType().equals("void")) {
+            destReg = globalContext.getNewReg();
+            functionCall.add("returnValue", true);
+            functionCall.add("destReg", destReg);
+        }
+        return new Expression(functionCall.render(), destReg, function.getReturnType(),
+                0, false, 0);
+    }
 }
