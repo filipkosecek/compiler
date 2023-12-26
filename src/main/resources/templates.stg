@@ -72,6 +72,7 @@ functionCall(destReg, returnValue, returnType, id, argList, computeParameters) :
 <endif>
 >>
 
+/* same signature begin */
 zeroExtend(destReg, srcType, value, destType) ::= <<
 <destReg> = zext <srcType> <value> to <destType>
 >>
@@ -83,12 +84,14 @@ signExtend(destReg, srcType, value, destType) ::= <<
 truncate(destReg, srcType, value, destType) ::= <<
 <destReg> = trunc <srcType> <value> to <destType>
 >>
+/* same signature end */
 
 logicalNot(destReg, type, value, valueCode) ::= <<
 <valueCode>
 <destReg> = icmp eq <type> 0, <value>
 >>
 
+/* same signature begin */
 subtract(destReg, type, value1, value2) ::= <<
 <destReg> = sub <type> <value1>, <value2>
 >>
@@ -100,3 +103,4 @@ multiplication(destReg, type, value1, value2) ::= <<
 addition(destReg, type, value1, value2) ::= <<
 <destReg> = add <type> <value1>, <value2>
 >>
+/* same signature end */

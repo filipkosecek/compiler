@@ -234,6 +234,19 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 0, false, 0);
     }
 
+    private Expression generateTypeCastExpr(String templateName, Expression value,
+                                            String destinationType) {
+        ST template = globalContext.templateGroup.getInstanceOf(templateName);
+        String destReg = globalContext.getNewReg();
+        template.add("destReg", destReg);
+        template.add("value", value.getValue());
+        template.add("srcType", globalContext.variableTypeToLLType(value.type()));
+        template.add("destType", globalContext.variableTypeToLLType(destinationType));
+        return new Expression(value.code() + "\n" + template.render(), destReg,
+                destinationType, 0,
+                value.isNumericConstant(), value.numericConstantValue());
+    }
+
     @Override
     public Expression visitTypeCastExpr(cssParser.TypeCastExprContext ctx) {
         Expression variable = visit(ctx.variable());
@@ -254,6 +267,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                     destinationType, variable.dimensionCount(),
                     false, 0);
 
+        /* LLVM language does not differentiate between signed and unsigned types */
         if (
                 (sourceType.equals("byte") && destinationType.equals("ubyte")) ||
                 (sourceType.equals("ubyte") && destinationType.equals("byte")) ||
@@ -264,42 +278,22 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                     destinationType, variable.dimensionCount(),
                     variable.isNumericConstant(), variable.numericConstantValue());
 
+        /* one extend */
         if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("int")) {
-            ST sext = globalContext.templateGroup.getInstanceOf("signExtend");
-            String destReg = globalContext.getNewReg();
-            sext.add("destReg", destReg);
-            sext.add("value", variable.getValue());
-            sext.add("srcType", globalContext.variableTypeToLLType(sourceType));
-            sext.add("destType", globalContext.variableTypeToLLType(destinationType));
-            return new Expression(variable.code() + "\n" + sext.render(), destReg,
-                    destinationType, 0,
-                    variable.isNumericConstant(), variable.numericConstantValue());
+            return generateTypeCastExpr("signExtend", variable, destinationType);
         }
 
+        /* zero extend */
         if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("uint")) {
-            ST zext = globalContext.templateGroup.getInstanceOf("zeroExtend");
-            String destReg = globalContext.getNewReg();
-            zext.add("destReg", destReg);
-            zext.add("value", variable.getValue());
-            zext.add("srcType", globalContext.variableTypeToLLType(sourceType));
-            zext.add("destType", globalContext.variableTypeToLLType(destinationType));
-            return new Expression(variable.code() + "\n" + zext.render(), destReg,
-                    destinationType, 0,
-                    variable.isNumericConstant(), variable.numericConstantValue());
+            return generateTypeCastExpr("zeroExtend", variable, destinationType);
         }
 
+        /* truncate */
         if ((sourceType.equals("int") || sourceType.equals("uint")) &&
                 destinationType.equals("byte") || destinationType.equals("ubyte")) {
-            ST trunc = globalContext.templateGroup.getInstanceOf("truncate");
-            String destReg = globalContext.getNewReg();
-            trunc.add("destReg", destReg);
-            trunc.add("srcType", globalContext.variableTypeToLLType(sourceType));
-            trunc.add("destType", globalContext.variableTypeToLLType(destinationType));
-            trunc.add("value", variable.getValue());
-            return new Expression(variable.code() + "\n" + trunc.render(), destReg,
-                    destinationType, 0,
-                    variable.isNumericConstant(), variable.numericConstantValue());
+            return generateTypeCastExpr("truncate", variable, destinationType);
         }
+
         /* all cases should be covered */
         return null;
     }
