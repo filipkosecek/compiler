@@ -157,24 +157,26 @@ cmpSLE(destReg, type, value1, value2) ::= <<
 /* same signature end */
 
 /* same signature begin */
-logicalAnd(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, expressionCode1, expressionCode2) ::= <<
+logicalAnd(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, tmp5, expressionCode1, expressionCode2) ::= <<
 <expressionCode1>
 <expressionCode2>
 <tmp1> = icmp eq <type> 0, <value1>
-<tmp2> = icmp eq <type> 0, <tmp1>
+<tmp2> = icmp eq i1 0, <tmp1>
 <tmp3> = icmp eq <type> 0, <value2>
-<tmp4> = icmp eq <type> 0, <tmp3>
-<destReg> = and <type> <tmp2>, <tmp4>
+<tmp4> = icmp eq i1 0, <tmp3>
+<tmp5> = and i1 <tmp2>, <tmp4>
+<destReg> = zext i1 <tmp5> to <type>
 >>
 
-logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, expressionCode1, expressionCode2) ::= <<
+logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, tmp5, expressionCode1, expressionCode2) ::= <<
 <expressionCode1>
 <expressionCode2>
 <tmp1> = icmp eq <type> 0, <value1>
-<tmp2> = icmp eq <type> 0, <tmp1>
+<tmp2> = icmp eq i1 0, <tmp1>
 <tmp3> = icmp eq <type> 0, <value2>
-<tmp4> = icmp eq <type> 0, <tmp3>
-<destReg> = or <type> <tmp2>, <tmp4>
+<tmp4> = icmp eq i1 0, <tmp3>
+<tmp5> = or i1 <tmp2>, <tmp4>
+<destReg> = zext i1 <tmp5> to <type>
 >>
 /* same signature end */
 
