@@ -28,7 +28,7 @@ define <returnType> @<name>(<argumentList>)
 init:
 	<paramInit; separator="\n">
 	<code>
-<if(voidFunction)>end_void:
+<if(voidFunction)>
     ret void
 <endif>
 }

@@ -74,16 +74,14 @@ funcParamList
 ;
 
 statement
-	: while							                        #statementWhile
-	| if							                        #statementIf
-	| CONTINUE SEMICOLON					                #statementCont
-	| BREAK SEMICOLON					                    #statementBreak
-	| RETURN expression SEMICOLON				            #statementReturn
-	| DELETE ID SEMICOLON					                #statementDelete
-	| INPUT ID (LEFT_SQUARE expression RIGHT_SQUARE)*
-		SEMICOLON					                        #statementIO
-	| OUTPUT ID (LEFT_SQUARE expression RIGHT_SQUARE)*
-		SEMICOLON					                        #statementIO
+	: while                                                     #statementWhile
+	| if                                                        #statementIf
+	| CONTINUE SEMICOLON                                        #statementCont
+	| BREAK SEMICOLON                                           #statementBreak
+	| RETURN expression SEMICOLON                               #statementReturn
+	| DELETE ID SEMICOLON                                       #statementDelete
+	| INPUT ID (LEFT_SQUARE expression RIGHT_SQUARE)* SEMICOLON #statementInput
+	| OUTPUT expression SEMICOLON                               #statementOutput
 ;
 
 while
