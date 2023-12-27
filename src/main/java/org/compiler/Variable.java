@@ -2,11 +2,11 @@ package org.compiler;
 
 public class Variable {
     private String llName;
-    private final String variableType;
+    private final VarType variableType;
     private final int dimensionCount;
     private final boolean isReference;
 
-    public Variable(String llName, String type, int dimensionCount, boolean isReference) {
+    public Variable(String llName, VarType type, int dimensionCount, boolean isReference) {
         this.llName = llName;
         this.variableType = type;
         this.dimensionCount = dimensionCount;
@@ -21,7 +21,7 @@ public class Variable {
         llName = newName;
     }
 
-    public String getType() {
+    public VarType getType() {
         return variableType;
     }
 

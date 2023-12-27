@@ -6,8 +6,12 @@ program
 	: function+ EOF
 ;
 
+type
+    : t=(TYPE_BYTE | TYPE_UBYTE | TYPE_INT | TYPE_UINT | TYPE_VOID)
+;
+
 varDeclBlock
-	: TYPE declAssign (COMMA declAssign)* SEMICOLON
+	: type declAssign (COMMA declAssign)* SEMICOLON
 ;
 
 declTypeArray
@@ -19,12 +23,12 @@ declAssign
 ;
 
 funcArg
-	: TYPE ID (LEFT_SQUARE RIGHT_SQUARE)*	#funcArgClassic
-	| TYPE AMPERSAND ID			            #funcArgReference
+	: type ID (LEFT_SQUARE RIGHT_SQUARE)*	#funcArgClassic
+	| type AMPERSAND ID			            #funcArgReference
 ;
 
 function
-	: TYPE ID LEFT_BRACKET argList? RIGHT_BRACKET LEFT_CURLY
+	: type ID LEFT_BRACKET argList? RIGHT_BRACKET LEFT_CURLY
 	codeBlock RIGHT_CURLY
 ;
 
@@ -55,14 +59,14 @@ expression
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
 	| ID LEFT_BRACKET funcParamList? RIGHT_BRACKET                  #funcCallExpr
 	| unOp=(MINUS | LOGICAL_NOT) expression                         #unOpExpr
-	| LEFT_BRACKET TYPE (LEFT_SQUARE RIGHT_SQUARE)*
+	| LEFT_BRACKET type (LEFT_SQUARE RIGHT_SQUARE)*
 	RIGHT_BRACKET expression                                        #typeCastExpr
 	| expression binOp=(MULT | DIV | MOD) expression                #binOpExpr
 	| expression binOp=(PLUS | MINUS) expression                    #binOpExpr
 	| expression binOp=(LT | LTE | GT | GTE | EQ | NEQ) expression  #binOpExpr
 	| expression binOp=LOGICAL_AND expression                       #binOpExpr
 	| expression binOp=LOGICAL_OR expression                        #binOpExpr
-	| NEW TYPE (LEFT_SQUARE expression RIGHT_SQUARE)*               #allocExpr
+	| NEW type (LEFT_SQUARE expression RIGHT_SQUARE)*               #allocExpr
 ;
 
 funcParamList

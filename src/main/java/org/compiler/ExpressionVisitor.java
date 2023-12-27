@@ -33,7 +33,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 sb.deleteCharAt(ctx.STRING().getText().length() - 1);
                 sb.deleteCharAt(0);
                 globalContext.globalStrings.put(name, sb.toString());
-                return new Expression(code.render(), destReg, "byte",
+                return new Expression(code.render(), destReg, VarType.BYTE,
                         1);
             case cssParser.CHAR:
                 template = globalContext.templateGroup.getInstanceOf("addition");
@@ -41,14 +41,14 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 template.add("type", "i8");
                 template.add("value1", "0");
                 template.add("value2", String.valueOf(ctx.CHAR().getText()));
-                return new Expression(template.render(), destReg, "byte", 0);
+                return new Expression(template.render(), destReg, VarType.BYTE, 0);
             case cssParser.INT:
                 template = globalContext.templateGroup.getInstanceOf("addition");
                 template.add("destReg", destReg);
                 template.add("type", "i32");
                 template.add("value1", "0");
                 template.add("value2", String.valueOf(ctx.INT().getText()));
-                return new Expression(template.render(), destReg, "int", 0);
+                return new Expression(template.render(), destReg, VarType.INT, 0);
         }
         return null;
     }
@@ -137,7 +137,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (var.getDimensionCount() - (ctx.expression().size() - 1) != assignValue.dimensionCount())
             globalContext.handleFatalError("assign type don't match");
 
-        if (!var.getType().equals(assignValue.type()))
+        if (var.getType() != assignValue.type())
             globalContext.handleFatalError("types don't match");
 
         /* variables and references */
@@ -212,7 +212,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             for (int i = 0; i < parameters.size(); ++i) {
                 Variable signatureVar = signature.get(i);
                 Expression parameter = parameters.get(i);
-                if (!parameter.type().equals(signatureVar.getType()) ||
+                if ((parameter.type() != signatureVar.getType()) ||
                         parameter.dimensionCount() != signatureVar.getDimensionCount())
                     globalContext.handleFatalError("Signature does not match.");
                 String parameterType = globalContext.llPointer(parameter.type(), parameter.dimensionCount());
@@ -229,7 +229,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         functionCall.add("argList", argList);
         functionCall.add("computeParameters", code.toString());
         String destReg = "";
-        if (!function.getReturnType().equals("void")) {
+        if (function.getReturnType() != VarType.VOID) {
             destReg = globalContext.getNewReg();
             functionCall.add("returnValue", true);
             functionCall.add("destReg", destReg);
@@ -239,7 +239,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     }
 
     private Expression generateTypeCastExpr(String templateName, Expression value,
-                                            String destinationType) {
+                                            VarType destinationType) {
         ST template = globalContext.templateGroup.getInstanceOf(templateName);
         String destReg = globalContext.getNewReg();
         template.add("destReg", destReg);
@@ -253,13 +253,13 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     @Override
     public Expression visitTypeCastExpr(cssParser.TypeCastExprContext ctx) {
         Expression expression = visit(ctx.expression());
-        String destinationType = ctx.TYPE().getText();
-        String sourceType = expression.type();
+        VarType destinationType = new TypeVisitor().visit(ctx.type());
+        VarType sourceType = expression.type();
         int destinationDimensionCount = ctx.LEFT_SQUARE().size();
         if (destinationDimensionCount != expression.dimensionCount())
             globalContext.handleFatalError("cannot type cast to another level");
 
-        if (sourceType.equals(destinationType))
+        if (sourceType == destinationType)
             return expression;
 
         /* array is type cast just as pointers are in C,
@@ -271,27 +271,27 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
 
         /* LLVM language does not differentiate between signed and unsigned types */
         if (
-                (sourceType.equals("byte") && destinationType.equals("ubyte")) ||
-                (sourceType.equals("ubyte") && destinationType.equals("byte")) ||
-                (sourceType.equals("int") && destinationType.equals("uint"))   ||
-                (sourceType.equals("uint") && destinationType.equals("int"))
+                (sourceType == VarType.BYTE && destinationType == VarType.UBYTE) ||
+                (sourceType == VarType.UBYTE && destinationType == VarType.BYTE) ||
+                (sourceType == VarType.INT && destinationType == VarType.UINT) ||
+                (sourceType == VarType.UINT && destinationType == VarType.INT)
         )
             return new Expression(expression.code(), expression.returnRegister(),
                     destinationType, expression.dimensionCount());
 
         /* one extend */
-        if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("int")) {
+        if ((sourceType == VarType.BYTE || sourceType == VarType.UBYTE) && destinationType == VarType.INT) {
             return generateTypeCastExpr("signExtend", expression, destinationType);
         }
 
         /* zero extend */
-        if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("uint")) {
+        if ((sourceType == VarType.BYTE || sourceType == VarType.UBYTE) && destinationType == VarType.UINT) {
             return generateTypeCastExpr("zeroExtend", expression, destinationType);
         }
 
         /* truncate */
-        if ((sourceType.equals("int") || sourceType.equals("uint")) &&
-                destinationType.equals("byte") || destinationType.equals("ubyte")) {
+        if ((sourceType == VarType.INT || sourceType == VarType.UINT) &&
+                destinationType == VarType.BYTE || destinationType == VarType.UBYTE) {
             return generateTypeCastExpr("truncate", expression, destinationType);
         }
 
@@ -362,12 +362,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     public Expression visitBinOpExpr(cssParser.BinOpExprContext ctx) {
         Expression first = visit(ctx.expression(0));
         Expression second = visit(ctx.expression(1));
-        if (!first.type().equals(second.type()) ||
+        if ((first.type() != second.type()) ||
                 first.dimensionCount() != second.dimensionCount() ||
                 first.dimensionCount() != 0)
             globalContext.handleFatalError("type mismatch");
 
-        boolean isSigned = first.type().equals("byte") || first.type().equals("int");
+        boolean isSigned = first.type() == VarType.BYTE || first.type() == VarType.INT;
         String expressionCode = first.code() + "\n" + second.code();
         String templateName = "";
 

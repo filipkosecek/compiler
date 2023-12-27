@@ -17,13 +17,13 @@ public class GlobalContext {
     private int globalStringCounter = 1;
 
     /* This variable is for variale declaration. */
-    private String currentDeclarationType = "";
+    private VarType currentDeclarationType;
 
-    public String getCurrentDeclarationType() {
+    public VarType getCurrentDeclarationType() {
         return currentDeclarationType;
     }
 
-    public void setCurrentDeclarationType(String type) {
+    public void setCurrentDeclarationType(VarType type) {
         currentDeclarationType = type;
     }
 
@@ -82,14 +82,14 @@ public class GlobalContext {
     }
 
     private int idCounter = 1;
-    private final Map<String, String> variableTypeToLLType = Map.of("byte", "i8",
-                                                                        "ubyte", "i8",
-                                                                        "int", "i32",
-                                                                        "uint", "i32",
-                                                                        "void", "void"
+    private final Map<VarType, String> variableTypeToLLType = Map.of(VarType.BYTE, "i8",
+                                                                        VarType.UBYTE, "i8",
+                                                                        VarType.INT, "i32",
+                                                                        VarType.UINT, "i32",
+                                                                        VarType.VOID, "void"
                                                                         );
 
-    public String variableTypeToLLType(String type) {
+    public String variableTypeToLLType(VarType type) {
         return variableTypeToLLType.get(type);
     }
     public void handleFileErrors() {
@@ -113,7 +113,7 @@ public class GlobalContext {
         return String.format("label%d", idCounter++);
     }
 
-    public String llPointer(String sourceType, int n) {
+    public String llPointer(VarType sourceType, int n) {
         String llType = variableTypeToLLType(sourceType);
         StringBuilder sb = new StringBuilder(llType);
         for (int i = 0; i < n; ++i) {

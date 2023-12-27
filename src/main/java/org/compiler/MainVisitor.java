@@ -1,4 +1,5 @@
 package org.compiler;
+
 import org.gen.cssParser;
 import org.stringtemplate.v4.*;
 import org.gen.*;
@@ -41,6 +42,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			globalContext.handleFatalError("Function already declared.");
 
 		globalContext.addNewScope();
+		VarType returnType = new TypeVisitor().visit(ctx.type());
 
 		List<Variable> argList;
 		String argListCode;
@@ -69,15 +71,15 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			functionDef.add("paramInit", paramInit.render());
 		}
 
-		functionDef.add("returnType", globalContext.variableTypeToLLType(ctx.TYPE().getText()));
+		functionDef.add("returnType", globalContext.variableTypeToLLType(returnType));
 		functionDef.add("name", ctx.ID().getText());
 		functionDef.add("argumentList", argListCode);
 		functionDef.add("code", visit(ctx.codeBlock()));
-		if(ctx.TYPE().getText().equals("void"))
+		if(returnType == VarType.VOID)
 			functionDef.add("voidFunction", true);
 
 		globalContext.addFunctionToGlobalContext(ctx.ID().getText(),
-				new Function(ctx.TYPE().getText(), argList));
+				new Function(returnType, argList));
 
 		globalContext.popScope();
 
@@ -107,7 +109,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 	@Override
 	public String visitVarDeclBlock(cssParser.VarDeclBlockContext ctx) {
-		globalContext.setCurrentDeclarationType(ctx.TYPE().getText());
+		VarType type = new TypeVisitor().visit(ctx.type());
+		globalContext.setCurrentDeclarationType(type);
 		ST template = globalContext.templateGroup.getInstanceOf("declarationBlock");
 		for (int i = 0; i < ctx.declAssign().size(); ++i) {
 			template.add("code", visit(ctx.declAssign(i)));
@@ -119,7 +122,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	@Override
 	public String visitDeclAssign(cssParser.DeclAssignContext ctx) {
 		Variable var = globalContext.getVariable(ctx.ID().getText());
-		String type = globalContext.getCurrentDeclarationType();
+		VarType type = globalContext.getCurrentDeclarationType();
 		if (var != null) {
 			globalContext.handleFatalError("variable declared twice");
 			throw new RuntimeException("gjhj");
@@ -136,7 +139,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 		if (ctx.expression() != null) {
 			Expression assignValue = new ExpressionVisitor(globalContext).visit(ctx.expression());
-			if (!assignValue.type().equals(type)) {
+			if (assignValue.type() != type) {
 				globalContext.handleFatalError("types don't match");
 				throw new RuntimeException("ghji");
 			}

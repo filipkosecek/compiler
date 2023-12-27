@@ -3,10 +3,10 @@ package org.compiler;
 public class Expression{
         private final String code;
         private final String returnRegister;
-        private final String type;
+        private final VarType type;
         private final int dimensionCount;
 
-        public Expression(String code, String returnRegister, String type, int dimensionCount)
+        public Expression(String code, String returnRegister, VarType type, int dimensionCount)
         {
                 this.code = code;
                 this.returnRegister = returnRegister;
@@ -22,7 +22,7 @@ public class Expression{
                 return returnRegister;
         }
 
-        public String type() {
+        public VarType type() {
                 return type;
         }
 

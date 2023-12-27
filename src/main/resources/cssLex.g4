@@ -1,7 +1,11 @@
 lexer grammar cssLex;
 
 AMPERSAND: '&' ;
-TYPE: 'byte' | 'ubyte' | 'int' | 'uint' | 'void';
+TYPE_BYTE: 'byte' ;
+TYPE_UBYTE: 'ubyte' ;
+TYPE_INT: 'int' ;
+TYPE_UINT: 'uint' ;
+TYPE_VOID: 'void' ;
 BREAK: 'break' ;
 CONTINUE: 'continue' ;
 COLON: ':' ;
