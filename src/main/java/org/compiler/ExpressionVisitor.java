@@ -20,10 +20,11 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
      */
     @Override
     public Expression visitBaseExpr(cssParser.BaseExprContext ctx) {
+        String destReg = globalContext.getNewReg();
+        ST template;
         switch (ctx.base.getType()) {
             case cssParser.STRING:
                 String name = globalContext.getNewGlobalStringName();
-                String destReg = globalContext.getNewReg();
                 ST code = globalContext.templateGroup.getInstanceOf("globalStringAccess");
                 code.add("dest", destReg);
                 code.add("size", String.valueOf(ctx.STRING().getText().length() - 2 + 1));
@@ -33,13 +34,21 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 sb.deleteCharAt(0);
                 globalContext.globalStrings.put(name, sb.toString());
                 return new Expression(code.render(), destReg, "byte",
-                        1, false, 0);
+                        1);
             case cssParser.CHAR:
-                return new Expression("", "", "byte", 0,
-                        true, ctx.CHAR().getText().charAt(1));
+                template = globalContext.templateGroup.getInstanceOf("addition");
+                template.add("destReg", destReg);
+                template.add("type", "i8");
+                template.add("value1", "0");
+                template.add("value2", String.valueOf(ctx.CHAR().getText()));
+                return new Expression(template.render(), destReg, "byte", 0);
             case cssParser.INT:
-                return new Expression("", "", "int", 0,
-                        true, Integer.parseInt(ctx.INT().getText()));
+                template = globalContext.templateGroup.getInstanceOf("addition");
+                template.add("destReg", destReg);
+                template.add("type", "i32");
+                template.add("value1", "0");
+                template.add("value2", String.valueOf(ctx.INT().getText()));
+                return new Expression(template.render(), destReg, "int", 0);
         }
         return null;
     }
@@ -66,14 +75,13 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             arrayIndex.add("destType", tmpDestType);
             arrayIndex.add("ptrType", ptrType);
             arrayIndex.add("indexType", globalContext.variableTypeToLLType(expression.type()));
-            arrayIndex.add("indexReg", expression.getValue());
+            arrayIndex.add("indexReg", expression.returnRegister());
             arrayIndex.add("expressionCode", expression.code());
             multiLevelIndexing.add("indexing", arrayIndex.render());
         }
 
         return new Expression(multiLevelIndexing.render(), destReg,
-                var.getType(), var.getDimensionCount() - n,
-                false, 0);
+                var.getType(), var.getDimensionCount() - n);
     }
 
     /**
@@ -88,8 +96,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         template.add("ptr", var.getLlName());
         template.add("ptrType",
                 globalContext.llPointer(var.getType(), 1));
-        return new Expression(template.render(), destReg, var.getType(),
-                0, false, 0);
+        return new Expression(template.render(), destReg, var.getType(), 0);
     }
 
     private boolean checkVariable(Variable variable, int expressionDimensions) {
@@ -137,22 +144,20 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (var.getDimensionCount() == 0) {
             ST store = globalContext.templateGroup.getInstanceOf("writeExpression");
             store.add("valueType", globalContext.variableTypeToLLType(var.getType()));
-            store.add("value", assignValue.getValue());
+            store.add("value", assignValue.returnRegister());
             store.add("ptrType",
                     globalContext.llPointer(var.getType(), 1));
             store.add("ptr", var.getLlName());
             store.add("expressionCode", assignValue.code());
-            return new Expression(store.render(), assignValue.getValue(),
-                    assignValue.type(), assignValue.dimensionCount(), assignValue.isNumericConstant(),
-                    assignValue.numericConstantValue());
+            return new Expression(store.render(), assignValue.returnRegister(),
+                    assignValue.type(), assignValue.dimensionCount());
         }
 
         /* assigning array to array */
         if (ctx.expression().size() == 1) {
-            globalContext.assignNewRegister(ctx.ID().getText(), assignValue.getValue());
+            globalContext.assignNewRegister(ctx.ID().getText(), assignValue.returnRegister());
             return new Expression(assignValue.code(), assignValue.returnRegister(),
-                    assignValue.type(), assignValue.dimensionCount(), assignValue.isNumericConstant(),
-                    assignValue.numericConstantValue());
+                    assignValue.type(), assignValue.dimensionCount());
         }
 
         /* arrays with access*/
@@ -176,13 +181,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         ));
         arrayWrite.add("ptr", arrayAccess.returnRegister());
         arrayWrite.add("indexType", lastLevelIndex.type());
-        arrayWrite.add("index", lastLevelIndex.getValue());
-        arrayWrite.add("value", assignValue.getValue());
+        arrayWrite.add("index", lastLevelIndex.returnRegister());
+        arrayWrite.add("value", assignValue.returnRegister());
         arrayWrite.add("expressionCode", assignValue.code());
 
-        return new Expression(arrayWrite.render(), assignValue.getValue(), assignValue.type(),
-                assignValue.dimensionCount(), assignValue.isNumericConstant(),
-                assignValue.numericConstantValue());
+        return new Expression(arrayWrite.render(), assignValue.returnRegister(), assignValue.type(),
+                assignValue.dimensionCount());
     }
 
     @Override
@@ -212,7 +216,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                         parameter.dimensionCount() != signatureVar.getDimensionCount())
                     globalContext.handleFatalError("Signature does not match.");
                 String parameterType = globalContext.llPointer(parameter.type(), parameter.dimensionCount());
-                argListTemplate.add("arg", parameterType + " " + parameter.getValue());
+                argListTemplate.add("arg", parameterType + " " + parameter.returnRegister());
                 code.append(parameter.code());
                 code.append('\n');
             }
@@ -231,7 +235,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             functionCall.add("destReg", destReg);
         }
         return new Expression(functionCall.render(), destReg, function.getReturnType(),
-                0, false, 0);
+                0);
     }
 
     private Expression generateTypeCastExpr(String templateName, Expression value,
@@ -239,12 +243,11 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         ST template = globalContext.templateGroup.getInstanceOf(templateName);
         String destReg = globalContext.getNewReg();
         template.add("destReg", destReg);
-        template.add("value", value.getValue());
+        template.add("value", value.returnRegister());
         template.add("srcType", globalContext.variableTypeToLLType(value.type()));
         template.add("destType", globalContext.variableTypeToLLType(destinationType));
         return new Expression(value.code() + "\n" + template.render(), destReg,
-                destinationType, 0,
-                value.isNumericConstant(), value.numericConstantValue());
+                destinationType, 0);
     }
 
     @Override
@@ -264,8 +267,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
          */
         if (destinationDimensionCount > 0)
             return new Expression(expression.code(), expression.returnRegister(),
-                    destinationType, expression.dimensionCount(),
-                    false, 0);
+                    destinationType, expression.dimensionCount());
 
         /* LLVM language does not differentiate between signed and unsigned types */
         if (
@@ -275,8 +277,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 (sourceType.equals("uint") && destinationType.equals("int"))
         )
             return new Expression(expression.code(), expression.returnRegister(),
-                    destinationType, expression.dimensionCount(),
-                    expression.isNumericConstant(), expression.numericConstantValue());
+                    destinationType, expression.dimensionCount());
 
         /* one extend */
         if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("int")) {
@@ -307,33 +308,20 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         String destReg = globalContext.getNewReg();
         switch (ctx.unOp.getType()) {
             case cssParser.LOGICAL_NOT:
-                if (expression.isNumericConstant())
-                    return new Expression(expression.code(), expression.returnRegister(),
-                            expression.type(), expression.dimensionCount(),
-                            expression.isNumericConstant(), expression.numericConstantValue() != 0 ? 1 : 0);
-
                 ST logNot = globalContext.templateGroup.getInstanceOf("logicalNot");
                 logNot.add("type", globalContext.variableTypeToLLType(expression.type()));
-                logNot.add("value", expression.getValue());
+                logNot.add("value", expression.returnRegister());
                 logNot.add("destReg", destReg);
                 logNot.add("valueCode", expression.code());
-                return new Expression(logNot.render(), destReg, expression.type(),
-                        0, false, 0);
+                return new Expression(logNot.render(), destReg, expression.type(), 0);
             case cssParser.MINUS:
-                //TODO unsigned type shouldn't become negative
-                if (expression.isNumericConstant())
-                    return new Expression(expression.code(), expression.returnRegister(),
-                            expression.type(), expression.dimensionCount(),
-                            expression.isNumericConstant(), -expression.numericConstantValue());
-
                 ST minus = globalContext.templateGroup.getInstanceOf("subtract");
                 minus.add("destReg", destReg);
                 minus.add("type", globalContext.variableTypeToLLType(expression.type()));
                 minus.add("value1", "0");
-                minus.add("value2", expression.getValue());
+                minus.add("value2", expression.returnRegister());
                 String resultCode = expression.code() + "\n" + minus.render();
-                return new Expression(resultCode, destReg, expression.type(),
-                        0, false, 0);
+                return new Expression(resultCode, destReg, expression.type(), 0);
         }
         return null;
     }
@@ -344,10 +332,10 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         ST template = globalContext.templateGroup.getInstanceOf(templateName);
         template.add("destReg", destReg);
         template.add("type", globalContext.variableTypeToLLType(first.type()));
-        template.add("value1", first.getValue());
-        template.add("value2", second.getValue());
+        template.add("value1", first.returnRegister());
+        template.add("value2", second.returnRegister());
         return new Expression(expressionCode + template.render(), destReg,
-                first.type(), 0, false, 0);
+                first.type(), 0);
     }
 
     @Override
@@ -365,34 +353,15 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
 
         switch (ctx.binOp.getType()) {
             case cssParser.MULT:
-                if (first.isNumericConstant() && second.isNumericConstant())
-                    return new Expression(expressionCode, "", first.type(),
-                            0, true,
-                            first.numericConstantValue() * second.numericConstantValue());
                 templateName = "multiplication";
                 break;
             case cssParser.PLUS:
-                if (first.isNumericConstant() && second.isNumericConstant())
-                    return new Expression(expressionCode, "", first.type(),
-                            0, true,
-                            first.numericConstantValue() + second.numericConstantValue());
                 templateName = "addition";
                 break;
             case cssParser.DIV:
-                if (first.isNumericConstant() && second.isNumericConstant()) {
-                    if (second.numericConstantValue() == 0)
-                        throw new RuntimeException("bad things happen");
-                    return new Expression(expressionCode, "", first.type(),
-                            0, true,
-                            first.numericConstantValue() / second.numericConstantValue());
-                }
                 templateName = "division";
                 break;
             case cssParser.MINUS:
-                if (first.isNumericConstant() && second.isNumericConstant())
-                    return new Expression(expressionCode, "", first.type(),
-                            0, true,
-                            first.numericConstantValue() - second.numericConstantValue());
                 templateName = "subtract";
                 break;
             case cssParser.MOD:
