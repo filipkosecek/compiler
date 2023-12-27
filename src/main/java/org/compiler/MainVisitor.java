@@ -52,12 +52,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			argList = List.of();
 			argListCode = "";
 		}
+
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
-		functionDef.add("returnType", globalContext.variableTypeToLLType(ctx.TYPE().getText()));
-		functionDef.add("name", ctx.ID().getText());
-		functionDef.add("label", globalContext.genNewLabel());
-		functionDef.add("argumentList", argListCode);
-		functionDef.add("code", visit(ctx.codeBlock()));
 
 		for (Variable arg : argList) {
 			if (arg.isReference() || arg.getDimensionCount() > 0)
@@ -72,6 +68,12 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			arg.setLlName(destReg);
 			functionDef.add("paramInit", paramInit.render());
 		}
+
+		functionDef.add("returnType", globalContext.variableTypeToLLType(ctx.TYPE().getText()));
+		functionDef.add("name", ctx.ID().getText());
+		functionDef.add("label", globalContext.genNewLabel());
+		functionDef.add("argumentList", argListCode);
+		functionDef.add("code", visit(ctx.codeBlock()));
 
 		globalContext.addFunctionToGlobalContext(ctx.ID().getText(),
 				new Function(ctx.TYPE().getText(), argList));

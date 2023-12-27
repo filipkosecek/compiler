@@ -111,4 +111,66 @@ signedModulo(destReg, type, value1, value2) ::= <<
 unsignedModulo(destReg, type, value1, value2) ::= <<
 <destReg> = urem <type> <value1>, <value2>
 >>
+
+cmpEQ(destReg, type, value1, value2) ::= <<
+<destReg> = icmp eq <type> <value1>, <value2>
+>>
+
+cmpNE(destReg, type, value1, value2) ::= <<
+<destReg> = icmp ne <type> <value1>, <value2>
+>>
+
+cmpUGT(destReg, type, value1, value2) ::= <<
+<destReg> = icmp ugt <type> <value1>, <value2>
+>>
+
+cmpUGE(destReg, type, value1, value2) ::= <<
+<destReg> = icmp uge <type> <value1>, <value2>
+>>
+
+cmpULT(destReg, type, value1, value2) ::= <<
+<destReg> = icmp ult <type> <value1>, <value2>
+>>
+
+cmpULE(destReg, type, value1, value2) ::= <<
+<destReg> = icmp ule <type> <value1>, <value2>
+>>
+
+cmpSGT(destReg, type, value1, value2) ::= <<
+<destReg> = icmp sgt <type> <value1>, <value2>
+>>
+
+cmpSGE(destReg, type, value1, value2) ::= <<
+<destReg> = icmp sge <type> <value1>, <value2>
+>>
+
+cmpSLT(destReg, type, value1, value2) ::= <<
+<destReg> = icmp slt <type> <value1>, <value2>
+>>
+
+cmpSLE(destReg, type, value1, value2) ::= <<
+<destReg> = icmp sle <type> <value1>, <value2>
+>>
+/* same signature end */
+
+/* same signature begin */
+logicalAnd(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, expressionCode1, expressionCode2) ::= <<
+<expressionCode1>
+<expressionCode2>
+<tmp1> = icmp eq <type> 0, <value1>
+<tmp2> = icmp eq <type> 0, <tmp1>
+<tmp3> = icmp eq <type> 0, <value2>
+<tmp4> = icmp eq <type> 0, <tmp3>
+<destReg> = and <type> <tmp2>, <tmp4>
+>>
+
+logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, expressionCode1, expressionCode2) ::= <<
+<expressionCode1>
+<expressionCode2>
+<tmp1> = icmp eq <type> 0, <value1>
+<tmp2> = icmp eq <type> 0, <tmp1>
+<tmp3> = icmp eq <type> 0, <value2>
+<tmp4> = icmp eq <type> 0, <tmp3>
+<destReg> = or <type> <tmp2>, <tmp4>
+>>
 /* same signature end */

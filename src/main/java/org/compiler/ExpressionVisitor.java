@@ -338,6 +338,26 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 first.type(), 0);
     }
 
+    private Expression getLogicalBinop(Expression left, Expression right, boolean isLogicalAnd) {
+        String destReg = globalContext.getNewReg();
+        ST template;
+        if (isLogicalAnd)
+            template = globalContext.templateGroup.getInstanceOf("logicalAnd");
+        else
+            template = globalContext.templateGroup.getInstanceOf("logicalOr");
+        template.add("destReg", destReg);
+        template.add("type", globalContext.variableTypeToLLType(left.type()));
+        template.add("value1", left.returnRegister());
+        template.add("value2", right.returnRegister());
+        template.add("tmp1", globalContext.getNewReg());
+        template.add("tmp2", globalContext.getNewReg());
+        template.add("tmp3", globalContext.getNewReg());
+        template.add("tmp4", globalContext.getNewReg());
+        template.add("expressionCode1", left.code());
+        template.add("expressionCode2", right.code());
+        return new Expression(template.render(), destReg, left.type(), 0);
+    }
+
     @Override
     public Expression visitBinOpExpr(cssParser.BinOpExprContext ctx) {
         Expression first = visit(ctx.expression(0));
@@ -369,6 +389,41 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                     templateName = "signedModulo";
                 else
                     templateName = "unsignedModulo";
+                break;
+            case cssParser.EQ:
+                templateName = "cmpEQ";
+                break;
+            case cssParser.NEQ:
+                templateName = "cmpNE";
+                break;
+            case cssParser.GT:
+                if (isSigned)
+                    templateName = "cmpSGT";
+                else
+                    templateName = "cmpUGT";
+                break;
+            case cssParser.GTE:
+                if (isSigned)
+                    templateName = "cmpUGE";
+                else
+                    templateName = "cmpSGE";
+                break;
+            case cssParser.LT:
+                if (isSigned)
+                    templateName = "cmpSLT";
+                else
+                    templateName = "cmpULT";
+                break;
+            case cssParser.LTE:
+                if (isSigned)
+                    templateName = "cmpSLE";
+                else
+                    templateName = "cmpULE";
+                break;
+            case cssParser.LOGICAL_AND:
+                return getLogicalBinop(first, second, true);
+            case cssParser.LOGICAL_OR:
+                return getLogicalBinop(first, second, false);
         }
         return genBinOpExpr(templateName, expressionCode, first, second);
     }
