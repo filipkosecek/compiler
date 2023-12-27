@@ -73,10 +73,12 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			functionDef.add("paramInit", paramInit.render());
 		}
 
+		Statement statement = new StatementVisitor(globalContext).visit(ctx.codeBlock());
 		functionDef.add("returnType", globalContext.variableTypeToLLType(returnType));
 		functionDef.add("name", ctx.ID().getText());
 		functionDef.add("argumentList", argListCode);
-		functionDef.add("code", visit(ctx.codeBlock()));
+		functionDef.add("code", statement.code());
+		functionDef.add("firstLabel", statement.firstLabel());
 		if(returnType == VarType.VOID)
 			functionDef.add("voidFunction", true);
 

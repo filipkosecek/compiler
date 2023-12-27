@@ -40,6 +40,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             concat.add("addFirstLabel", true);
             concat.add("firstLabel", firstLabel);
         }
+        globalContext.popScope();
         return new Statement(firstLabel, concat.render());
     }
 
@@ -58,5 +59,47 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     @Override
     public Statement visitCodeFragmentStatement(cssParser.CodeFragmentStatementContext ctx) {
         return visit(ctx.statement());
+    }
+
+    @Override
+    public Statement visitWhile(cssParser.WhileContext ctx) {
+        String firstLabel = globalContext.genNewLabel();
+        Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
+        if (expression.dimensionCount() != 0) {
+            globalContext.handleFatalError("only simple expression can go to while");
+            throw new RuntimeException("bad");
+        }
+        Statement codeBlock = visit(ctx.codeBlock());
+        ST whileTemplate = globalContext.templateGroup.getInstanceOf("while");
+        whileTemplate.add("tmpReg", globalContext.getNewReg());
+        whileTemplate.add("expressionCode", expression.code());
+        whileTemplate.add("labelBegin", firstLabel);
+        whileTemplate.add("labelEnd", globalContext.genNewLabel());
+        whileTemplate.add("bodyCodeBlock", codeBlock.code());
+        whileTemplate.add("expressionType", globalContext.variableTypeToLLType(expression.type()));
+        whileTemplate.add("expressionReg", expression.returnRegister());
+        whileTemplate.add("labelBody", codeBlock.firstLabel());
+        return new Statement(firstLabel, whileTemplate.render());
+    }
+
+    @Override
+    public Statement visitStatementReturn(cssParser.StatementReturnContext ctx) {
+        Function currentFunction = globalContext.currentFunction;
+        Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
+        if (expression.dimensionCount() != 0) {
+            globalContext.handleFatalError("Only primitive values can be returned from a function.");
+            throw new RuntimeException("bad");
+        }
+        if (expression.type() != currentFunction.getReturnType()) {
+            globalContext.handleFatalError("Return value type does not match.");
+            throw new RuntimeException("bad");
+        }
+
+        ST returnTemplate = globalContext.templateGroup.getInstanceOf("return");
+        returnTemplate.add("type",
+                globalContext.variableTypeToLLType(currentFunction.getReturnType()));
+        returnTemplate.add("retReg", expression.returnRegister());
+        returnTemplate.add("expressionCode", expression.code());
+        return new Statement(null, returnTemplate.render());
     }
 }

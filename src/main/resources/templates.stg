@@ -22,11 +22,12 @@ paramInit(destReg, type, initValue, ptrType) ::= <<
 store <type> <initValue>, <ptrType> <destReg>
 >>
 
-functionDef(returnType, name, argumentList, code, paramInit, voidFunction) ::= <<
+functionDef(firstLabel, returnType, name, argumentList, code, paramInit, voidFunction) ::= <<
 define <returnType> @<name>(<argumentList>)
 {
 init:
 	<paramInit; separator="\n">
+	br label <firstLabel>
 	<code>
 <if(voidFunction)>
     ret void
@@ -200,9 +201,17 @@ concatCodeBlock(code, addFirstLabel, firstLabel) ::= <<
 <code; separator="\n">
 >>
 
-while(labelBegin, expressionCode) ::= <<
-loop_begin_<labelBegin>:
+while(tmpReg, expressionCode, expressionType, expressionReg, labelBody, labelBegin, labelEnd, bodyCodeBlock) ::= <<
+<labelBegin>:
     <expressionCode>
     <tmpReg> = icmp ne <expressionType> <expressionReg>, 0
-    br i1 <tmpReg>, label
+    br i1 <tmpReg>, label <labelBody>, label <labelEnd>
+<bodyCodeBlock>
+    br label <labelBegin>
+<labelEnd>:
+>>
+
+return(retReg, type, expressionCode) ::= <<
+<expressionCode>
+ret <type> <retReg>
 >>
