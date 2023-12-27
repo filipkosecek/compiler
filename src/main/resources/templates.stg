@@ -157,26 +157,22 @@ cmpSLE(destReg, type, value1, value2) ::= <<
 /* same signature end */
 
 /* same signature begin */
-logicalAnd(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, tmp5, expressionCode1, expressionCode2) ::= <<
+logicalAnd(destReg, type, value1, value2, tmp1, tmp2, tmp3, expressionCode1, expressionCode2) ::= <<
 <expressionCode1>
 <expressionCode2>
-<tmp1> = icmp eq <type> 0, <value1>
-<tmp2> = icmp eq i1 0, <tmp1>
-<tmp3> = icmp eq <type> 0, <value2>
-<tmp4> = icmp eq i1 0, <tmp3>
-<tmp5> = and i1 <tmp2>, <tmp4>
-<destReg> = zext i1 <tmp5> to <type>
+<tmp1> = icmp ne <type> 0, <value1>
+<tmp2> = icmp ne <type> 0, <value2>
+<tmp3> = and i1 <tmp1>, <tmp2>
+<destReg> = zext i1 <tmp3> to <type>
 >>
 
-logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, tmp5, expressionCode1, expressionCode2) ::= <<
+logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, expressionCode1, expressionCode2) ::= <<
 <expressionCode1>
 <expressionCode2>
-<tmp1> = icmp eq <type> 0, <value1>
-<tmp2> = icmp eq i1 0, <tmp1>
-<tmp3> = icmp eq <type> 0, <value2>
-<tmp4> = icmp eq i1 0, <tmp3>
-<tmp5> = or i1 <tmp2>, <tmp4>
-<destReg> = zext i1 <tmp5> to <type>
+<tmp1> = icmp ne <type> 0, <value1>
+<tmp2> = icmp ne <type> 0, <value2>
+<tmp3> = or i1 <tmp2>, <tmp4>
+<destReg> = zext i1 <tmp3> to <type>
 >>
 /* same signature end */
 
@@ -194,12 +190,19 @@ simpleVarDeclaration(reg, type, init, value, ptrType, expressionCode) ::= <<
 
 codeFragment(code, jump, label) ::= <<
 <code>
-<if(jump)>br label <label>
+<if(jump)>br label <label>:
 <endif>
 >>
 
 concatCodeBlock(code, addFirstLabel, firstLabel) ::= <<
-<if(addFirstLabel)><firstLabel>
+<if(addFirstLabel)><firstLabel>:
 <endif>
 <code; separator="\n">
+>>
+
+while(labelBegin, expressionCode) ::= <<
+loop_begin_<labelBegin>:
+    <expressionCode>
+    <tmpReg> = icmp ne <expressionType> <expressionReg>, 0
+    br i1 <tmpReg>, label
 >>
