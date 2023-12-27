@@ -22,12 +22,15 @@ paramInit(destReg, type, initValue, ptrType) ::= <<
 store <type> <initValue>, <ptrType> <destReg>
 >>
 
-functionDef(returnType, name, argumentList, code, paramInit) ::= <<
+functionDef(returnType, name, argumentList, code, paramInit, voidFunction) ::= <<
 define <returnType> @<name>(<argumentList>)
 {
 init:
 	<paramInit; separator="\n">
 	<code>
+<if(voidFunction)>end_void:
+    ret void
+<endif>
 }
 >>
 

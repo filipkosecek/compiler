@@ -73,6 +73,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		functionDef.add("name", ctx.ID().getText());
 		functionDef.add("argumentList", argListCode);
 		functionDef.add("code", visit(ctx.codeBlock()));
+		if(ctx.TYPE().getText().equals("void"))
+			functionDef.add("voidFunction", true);
 
 		globalContext.addFunctionToGlobalContext(ctx.ID().getText(),
 				new Function(ctx.TYPE().getText(), argList));
