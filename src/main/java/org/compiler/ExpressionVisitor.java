@@ -258,6 +258,8 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         int destinationDimensionCount = ctx.LEFT_SQUARE().size();
         if (destinationDimensionCount != expression.dimensionCount())
             globalContext.handleFatalError("cannot type cast to another level");
+        if (sourceType == VarType.VOID || destinationType == VarType.VOID)
+            globalContext.handleFatalError("expressions cannot be type cast to void");
 
         if (sourceType == destinationType)
             return expression;
@@ -280,20 +282,16 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                     destinationType, expression.dimensionCount());
 
         /* one extend */
-        if ((sourceType == VarType.BYTE || sourceType == VarType.UBYTE) && destinationType == VarType.INT) {
+        if (sourceType == VarType.BYTE)
             return generateTypeCastExpr("signExtend", expression, destinationType);
-        }
 
         /* zero extend */
-        if ((sourceType == VarType.BYTE || sourceType == VarType.UBYTE) && destinationType == VarType.UINT) {
+        if (sourceType == VarType.UBYTE)
             return generateTypeCastExpr("zeroExtend", expression, destinationType);
-        }
 
         /* truncate */
-        if ((sourceType == VarType.INT || sourceType == VarType.UINT) &&
-                destinationType == VarType.BYTE || destinationType == VarType.UBYTE) {
+        if (sourceType == VarType.INT || sourceType == VarType.UINT)
             return generateTypeCastExpr("truncate", expression, destinationType);
-        }
 
         /* all cases should be covered */
         return null;
