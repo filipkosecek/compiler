@@ -22,10 +22,10 @@ paramInit(destReg, type, initValue, ptrType) ::= <<
 store <type> <initValue>, <ptrType> <destReg>
 >>
 
-functionDef(returnType, name, argumentList, code, label, paramInit) ::= <<
+functionDef(returnType, name, argumentList, code, paramInit) ::= <<
 define <returnType> @<name>(<argumentList>)
 {
-<label>:
+init:
 	<paramInit; separator="\n">
 	<code>
 }
@@ -174,3 +174,15 @@ logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, tmp4, expressionCode1
 <destReg> = or <type> <tmp2>, <tmp4>
 >>
 /* same signature end */
+
+declarationBlock(code) ::= <<
+<code; separator="\n">
+>>
+
+simpleVarDeclaration(reg, type, init, value, ptrType, expressionCode) ::= <<
+<if(init)><expressionCode>
+<endif>
+<reg> = alloca <type>
+<if(init)>store <type> <value>, <ptrType> <reg>
+<endif>
+>>

@@ -71,7 +71,6 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 		functionDef.add("returnType", globalContext.variableTypeToLLType(ctx.TYPE().getText()));
 		functionDef.add("name", ctx.ID().getText());
-		functionDef.add("label", globalContext.genNewLabel());
 		functionDef.add("argumentList", argListCode);
 		functionDef.add("code", visit(ctx.codeBlock()));
 
@@ -102,5 +101,50 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	public String visitCodeFragmentExpr(cssParser.CodeFragmentExprContext ctx) {
 		Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
 		return expression.code();
+	}
+
+	@Override
+	public String visitVarDeclBlock(cssParser.VarDeclBlockContext ctx) {
+		globalContext.setCurrentDeclarationType(ctx.TYPE().getText());
+		ST template = globalContext.templateGroup.getInstanceOf("declarationBlock");
+		for (int i = 0; i < ctx.declAssign().size(); ++i) {
+			template.add("code", visit(ctx.declAssign(i)));
+		}
+		return template.render();
+	}
+
+	//TODO array declaration
+	@Override
+	public String visitDeclAssign(cssParser.DeclAssignContext ctx) {
+		Variable var = globalContext.getVariable(ctx.ID().getText());
+		String type = globalContext.getCurrentDeclarationType();
+		if (var != null) {
+			globalContext.handleFatalError("variable declared twice");
+			throw new RuntimeException("gjhj");
+		}
+
+		/*
+		 * TODO: add case for an array
+		 *  also check if numbers of dimensions equal
+		 */
+		String register = globalContext.getNewReg();
+		ST template = globalContext.templateGroup.getInstanceOf("simpleVarDeclaration");
+		template.add("reg", register);
+		template.add("type", globalContext.variableTypeToLLType(type));
+
+		if (ctx.expression() != null) {
+			Expression assignValue = new ExpressionVisitor(globalContext).visit(ctx.expression());
+			if (!assignValue.type().equals(type)) {
+				globalContext.handleFatalError("types don't match");
+				throw new RuntimeException("ghji");
+			}
+			template.add("init", true);
+			template.add("expressionCode", assignValue.code());
+			template.add("value", assignValue.returnRegister());
+			template.add("ptrType", globalContext.llPointer(type, 1));
+		}
+		var = new Variable(register, type, 0, false);
+		globalContext.addToLastScope(ctx.ID().getText(), var);
+		return template.render();
 	}
 }

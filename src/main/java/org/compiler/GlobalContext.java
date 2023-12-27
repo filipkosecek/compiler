@@ -16,6 +16,16 @@ public class GlobalContext {
     public final HashMap<String, String> globalStrings = new HashMap<>();
     private int globalStringCounter = 1;
 
+    /* This variable is for variale declaration. */
+    private String currentDeclarationType = "";
+
+    public String getCurrentDeclarationType() {
+        return currentDeclarationType;
+    }
+
+    public void setCurrentDeclarationType(String type) {
+        currentDeclarationType = type;
+    }
 
     public boolean containsFunction(String functionName) {
         return functions.containsKey(functionName);

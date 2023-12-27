@@ -334,7 +334,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         template.add("type", globalContext.variableTypeToLLType(first.type()));
         template.add("value1", first.returnRegister());
         template.add("value2", second.returnRegister());
-        return new Expression(expressionCode + template.render(), destReg,
+        return new Expression(expressionCode + "\n" + template.render(), destReg,
                 first.type(), 0);
     }
 
@@ -368,7 +368,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             globalContext.handleFatalError("type mismatch");
 
         boolean isSigned = first.type().equals("byte") || first.type().equals("int");
-        String expressionCode = first + "\n" + second;
+        String expressionCode = first.code() + "\n" + second.code();
         String templateName = "";
 
         switch (ctx.binOp.getType()) {
