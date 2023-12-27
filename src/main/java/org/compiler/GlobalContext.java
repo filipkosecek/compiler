@@ -18,6 +18,7 @@ public class GlobalContext {
 
     /* This variable is for variale declaration. */
     private VarType currentDeclarationType;
+    public Function currentFunction = null;
 
     public VarType getCurrentDeclarationType() {
         return currentDeclarationType;
@@ -71,6 +72,10 @@ public class GlobalContext {
         if (isVariableDeclared(id))
             handleFatalError("variable name collision");
         scopeStack.getLast().addVariable(id, var);
+    }
+
+    public ScopeInfo getLastScope() {
+        return scopeStack.getLast();
     }
 
     public void assignNewRegister(String id, String newRegister) {

@@ -189,3 +189,15 @@ simpleVarDeclaration(reg, type, init, value, ptrType, expressionCode) ::= <<
 <if(init)>store <type> <value>, <ptrType> <reg>
 <endif>
 >>
+
+codeFragment(code, jump, label) ::= <<
+<code>
+<if(jump)>br label <label>
+<endif>
+>>
+
+concatCodeBlock(code, addFirstLabel, firstLabel) ::= <<
+<if(addFirstLabel)><firstLabel>
+<endif>
+<code; separator="\n">
+>>

@@ -55,6 +55,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			argListCode = "";
 		}
 
+		Function function = new Function(returnType, argList);
+		globalContext.currentFunction = function;
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
 
 		for (Variable arg : argList) {
@@ -78,8 +80,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		if(returnType == VarType.VOID)
 			functionDef.add("voidFunction", true);
 
-		globalContext.addFunctionToGlobalContext(ctx.ID().getText(),
-				new Function(returnType, argList));
+		globalContext.addFunctionToGlobalContext(ctx.ID().getText(), function);
 
 		globalContext.popScope();
 

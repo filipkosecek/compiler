@@ -15,7 +15,7 @@ varDeclBlock
 ;
 
 declTypeArray
-	: LEFT_SQUARE expression RIGHT_SQUARE
+	: LEFT_SQUARE expression? RIGHT_SQUARE
 ;
 
 declAssign
@@ -37,7 +37,7 @@ argList
 ;
 
 codeBlock
-	: codeFragment*
+	: codeFragment+
 ;
 
 codeFragment
