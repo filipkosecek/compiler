@@ -249,22 +249,22 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
 
     @Override
     public Expression visitTypeCastExpr(cssParser.TypeCastExprContext ctx) {
-        Expression variable = visit(ctx.variable());
+        Expression expression = visit(ctx.expression());
         String destinationType = ctx.TYPE().getText();
-        String sourceType = variable.type();
+        String sourceType = expression.type();
         int destinationDimensionCount = ctx.LEFT_SQUARE().size();
-        if (destinationDimensionCount != variable.dimensionCount())
+        if (destinationDimensionCount != expression.dimensionCount())
             globalContext.handleFatalError("cannot type cast to another level");
 
         if (sourceType.equals(destinationType))
-            return variable;
+            return expression;
 
         /* array is type cast just as pointers are in C,
          * i.e. the underlying value is left untouched
          */
         if (destinationDimensionCount > 0)
-            return new Expression(variable.code(), variable.returnRegister(),
-                    destinationType, variable.dimensionCount(),
+            return new Expression(expression.code(), expression.returnRegister(),
+                    destinationType, expression.dimensionCount(),
                     false, 0);
 
         /* LLVM language does not differentiate between signed and unsigned types */
@@ -274,24 +274,24 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 (sourceType.equals("int") && destinationType.equals("uint"))   ||
                 (sourceType.equals("uint") && destinationType.equals("int"))
         )
-            return new Expression(variable.code(), variable.returnRegister(),
-                    destinationType, variable.dimensionCount(),
-                    variable.isNumericConstant(), variable.numericConstantValue());
+            return new Expression(expression.code(), expression.returnRegister(),
+                    destinationType, expression.dimensionCount(),
+                    expression.isNumericConstant(), expression.numericConstantValue());
 
         /* one extend */
         if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("int")) {
-            return generateTypeCastExpr("signExtend", variable, destinationType);
+            return generateTypeCastExpr("signExtend", expression, destinationType);
         }
 
         /* zero extend */
         if ((sourceType.equals("byte") || sourceType.equals("ubyte")) && destinationType.equals("uint")) {
-            return generateTypeCastExpr("zeroExtend", variable, destinationType);
+            return generateTypeCastExpr("zeroExtend", expression, destinationType);
         }
 
         /* truncate */
         if ((sourceType.equals("int") || sourceType.equals("uint")) &&
                 destinationType.equals("byte") || destinationType.equals("ubyte")) {
-            return generateTypeCastExpr("truncate", variable, destinationType);
+            return generateTypeCastExpr("truncate", expression, destinationType);
         }
 
         /* all cases should be covered */

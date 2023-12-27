@@ -56,7 +56,7 @@ expression
 	| ID LEFT_BRACKET funcParamList? RIGHT_BRACKET                  #funcCallExpr
 	| unOp=(MINUS | LOGICAL_NOT) expression                         #unOpExpr
 	| LEFT_BRACKET TYPE (LEFT_SQUARE RIGHT_SQUARE)*
-	RIGHT_BRACKET variable                                          #typeCastExpr
+	RIGHT_BRACKET expression                                        #typeCastExpr
 	| expression binOp=(MULT | DIV | MOD) expression                #binOpExpr
 	| expression binOp=(PLUS | MINUS) expression                    #binOpExpr
 	| expression binOp=(LT | LTE | GT | GTE | EQ | NEQ) expression  #binOpExpr
