@@ -20,7 +20,7 @@ declAssign
 
 funcArg
 	: TYPE ID (LEFT_SQUARE RIGHT_SQUARE)*	#funcArgClassic
-	| TYPE AMPERSAND ID			#funcArgReference
+	| TYPE AMPERSAND ID			            #funcArgReference
 ;
 
 function
@@ -38,8 +38,8 @@ codeBlock
 
 codeFragment
 	: expression SEMICOLON	#codeFragmentExpr
-	| statement		#codeFragmentStatement
-	| varDeclBlock		#codeFragmentVarDecl
+	| statement		        #codeFragmentStatement
+	| varDeclBlock		    #codeFragmentVarDecl
 ;
 
 variable
@@ -70,16 +70,16 @@ funcParamList
 ;
 
 statement
-	: while							#statementWhile
-	| if							#statementIf
-	| CONTINUE SEMICOLON					#statementCont
-	| BREAK SEMICOLON					#statementBreak
-	| RETURN expression SEMICOLON				#statementReturn
-	| DELETE ID SEMICOLON					#statementDelete
+	: while							                        #statementWhile
+	| if							                        #statementIf
+	| CONTINUE SEMICOLON					                #statementCont
+	| BREAK SEMICOLON					                    #statementBreak
+	| RETURN expression SEMICOLON				            #statementReturn
+	| DELETE ID SEMICOLON					                #statementDelete
 	| INPUT ID (LEFT_SQUARE expression RIGHT_SQUARE)*
-		SEMICOLON					#statementIO
+		SEMICOLON					                        #statementIO
 	| OUTPUT ID (LEFT_SQUARE expression RIGHT_SQUARE)*
-		SEMICOLON					#statementIO
+		SEMICOLON					                        #statementIO
 ;
 
 while
