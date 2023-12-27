@@ -103,4 +103,12 @@ multiplication(destReg, type, value1, value2) ::= <<
 addition(destReg, type, value1, value2) ::= <<
 <destReg> = add <type> <value1>, <value2>
 >>
+
+signedModulo(destReg, type, value1, value2) ::= <<
+<destReg> = srem <type> <value1>, <value2>
+>>
+
+unsignedModulo(destReg, type, value1, value2) ::= <<
+<destReg> = urem <type> <value1>, <value2>
+>>
 /* same signature end */

@@ -359,6 +359,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 first.dimensionCount() != 0)
             globalContext.handleFatalError("type mismatch");
 
+        boolean isSigned = first.type().equals("byte") || first.type().equals("int");
         String expressionCode = first + "\n" + second;
         String templateName = "";
 
@@ -394,6 +395,11 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                             first.numericConstantValue() - second.numericConstantValue());
                 templateName = "subtract";
                 break;
+            case cssParser.MOD:
+                if (isSigned)
+                    templateName = "signedModulo";
+                else
+                    templateName = "unsignedModulo";
         }
         return genBinOpExpr(templateName, expressionCode, first, second);
     }
