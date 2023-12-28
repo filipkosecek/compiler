@@ -232,17 +232,19 @@ if(exprCode, exprType, exprReg, tmpReg, ifBodyLabel, ifBodyCode, labelEnd, next,
 <tmpReg> = icmp ne <exprType> 0, <exprReg>
 br i1 <tmpReg>, label %<ifBodyLabel>, label %<next>
 <ifBodyCode>
+br label %<labelEnd>
 <elif; separator="\n">
 <else_>
 <labelEnd>:
 >>
 
-elif(firstLabel, exprCode, exprType, exprReg, tmpReg, next, codeBodyLabel, codeBody) ::= <<
+elif(firstLabel, exprCode, exprType, exprReg, tmpReg, next, codeBodyLabel, codeBody, labelEnd) ::= <<
 <firstLabel>:
 <exprCode>
 <tmpReg> = icmp ne <exprType> 0, <exprReg>
 br i1 <tmpReg>, label %<codeBodyLabel>, label %<next>
 <codeBody>
+br label %<labelEnd>
 >>
 
 else_(firstLabel, code, nextLabel) ::= <<

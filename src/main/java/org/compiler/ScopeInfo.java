@@ -4,6 +4,8 @@ import java.util.HashMap;
 
 public class ScopeInfo {
     private final HashMap<String, Variable> variables;
+
+    /* Inherited attribute for elif statements */
     public String nextElifLabel;
 
     public ScopeInfo() {

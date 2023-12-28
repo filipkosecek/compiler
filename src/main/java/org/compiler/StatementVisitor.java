@@ -135,10 +135,16 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             globalContext.getLastScope().nextElifLabel = else_.firstLabel();
         }
 
+        ArrayList<Statement> elifs = new ArrayList<>(ctx.elif().size());
         for (int i = ctx.elif().size() - 1; i >= 0; --i) {
             Statement elif = visit(ctx.elif(i));
-            ifTemplate.add("elif", elif.code());
+            elifs.add(elif);
+
+            /* Inherited attribute */
             globalContext.getLastScope().nextElifLabel = elif.firstLabel();
+        }
+        for (int i = elifs.size() - 1; i >= 0; --i) {
+            ifTemplate.add("elif", elifs.get(i).code());
         }
         ifTemplate.add("next", globalContext.getLastScope().nextElifLabel);
         return new Statement(null, ifTemplate.render());
