@@ -269,7 +269,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         String formatString = globalContext.globalStrings.get(formatStringName);
         printfTemplate.add("formatStringName", formatStringName);
         printfTemplate.add("formatStringSize", formatString.length() + 1);
-        printfTemplate.add("valueType", globalContext.variableTypeToLLType(value.type()));
+        printfTemplate.add("valueType", globalContext.llPointer(value.type(), value.dimensionCount()));
         printfTemplate.add("value", value.returnRegister());
         return new Statement(null, printfTemplate.render());
     }
