@@ -7,9 +7,16 @@ import org.gen.*;
  */
 
 public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
+    private static FunctionArgumentVisitor instance = null;
+    public static FunctionArgumentVisitor getInstance(GlobalContext globalContext) {
+        if (instance == null)
+            instance = new FunctionArgumentVisitor(globalContext);
+        return instance;
+    }
+
     private final GlobalContext globalContext;
 
-    public FunctionArgumentVisitor(GlobalContext globalContext) {
+    private FunctionArgumentVisitor(GlobalContext globalContext) {
         this.globalContext = globalContext;
     }
 
@@ -27,7 +34,7 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
      */
     @Override
     public Variable visitFuncArgClassic(cssParser.FuncArgClassicContext ctx) {
-        VarType type = new TypeVisitor().visit(ctx.type());
+        VarType type = TypeVisitor.getInstance().visit(ctx.type());
         checkVoidType(type);
         Variable var = new Variable(globalContext.getNewReg(),
                 type, getDimensionCount(ctx), false);
@@ -40,7 +47,7 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
      */
     @Override
     public Variable visitFuncArgReference(cssParser.FuncArgReferenceContext ctx) {
-        VarType type = new TypeVisitor().visit(ctx.type());
+        VarType type = TypeVisitor.getInstance().visit(ctx.type());
         checkVoidType(type);
         Variable var = new Variable(globalContext.getNewReg(),
                 type, 0, true);

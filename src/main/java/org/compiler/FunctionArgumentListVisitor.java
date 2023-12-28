@@ -6,12 +6,19 @@ import java.util.List;
 
 /* bude treba upravit ak pridam globalne premenne */
 public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variable>, String>> {
+    private static FunctionArgumentListVisitor instance = null;
+    public static FunctionArgumentListVisitor getInstance(GlobalContext globalContext) {
+        if (instance == null)
+            instance = new FunctionArgumentListVisitor(globalContext);
+        return instance;
+    }
+
     private final GlobalContext globalContext;
     private final FunctionArgumentVisitor functionArgumentVisitor;
 
-    public FunctionArgumentListVisitor(GlobalContext globalContext) {
+    private FunctionArgumentListVisitor(GlobalContext globalContext) {
         this.globalContext = globalContext;
-        this.functionArgumentVisitor = new FunctionArgumentVisitor(globalContext);
+        this.functionArgumentVisitor = FunctionArgumentVisitor.getInstance(globalContext);
     }
 
     private String generateCode(ArrayList<Variable> argList) {

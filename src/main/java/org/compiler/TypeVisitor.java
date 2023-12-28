@@ -3,6 +3,17 @@ package org.compiler;
 import org.gen.*;
 
 public class TypeVisitor extends cssBaseVisitor<VarType> {
+    private static TypeVisitor instance = null;
+    public static TypeVisitor getInstance() {
+        if (instance == null)
+            instance = new TypeVisitor();
+        return instance;
+    }
+
+    private TypeVisitor() {
+
+    }
+
     @Override
     public VarType visitType(cssParser.TypeContext ctx) {
         return switch (ctx.t.getType()) {

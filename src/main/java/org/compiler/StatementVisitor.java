@@ -6,9 +6,16 @@ import org.stringtemplate.v4.ST;
 import java.util.ArrayList;
 
 public class StatementVisitor extends cssBaseVisitor<Statement> {
+    private static StatementVisitor instance = null;
+    public static StatementVisitor getInstance(GlobalContext globalContext) {
+        if (instance == null)
+            instance = new StatementVisitor(globalContext);
+        return instance;
+    }
+
     private final GlobalContext globalContext;
 
-    public StatementVisitor(GlobalContext globalContext) {
+    private StatementVisitor(GlobalContext globalContext) {
         this.globalContext = globalContext;
     }
 
@@ -46,13 +53,13 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
 
     @Override
     public Statement visitCodeFragmentExpr(cssParser.CodeFragmentExprContext ctx) {
-        Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
+        Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         return new Statement(null, expression.code());
     }
 
     @Override
     public Statement visitCodeFragmentVarDecl(cssParser.CodeFragmentVarDeclContext ctx) {
-        String code = new MainVisitor(globalContext).visit(ctx.varDeclBlock());
+        String code = MainVisitor.getInstance(globalContext).visit(ctx.varDeclBlock());
         return new Statement(null, code);
     }
 
@@ -64,7 +71,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     @Override
     public Statement visitWhile(cssParser.WhileContext ctx) {
         String firstLabel = globalContext.genNewLabel();
-        Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
+        Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("only simple expression can go to while");
             throw new RuntimeException("bad");
@@ -85,7 +92,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     @Override
     public Statement visitStatementReturn(cssParser.StatementReturnContext ctx) {
         Function currentFunction = globalContext.currentFunction;
-        Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
+        Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("Only primitive values can be returned from a function.");
             throw new RuntimeException("bad");

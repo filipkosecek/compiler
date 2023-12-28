@@ -19,6 +19,6 @@ public class Main {
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		cssParser parser = new cssParser(tokens);
 		ParseTree tree = parser.program();
-		System.out.println(new MainVisitor(globalVars).visit(tree));
+		System.out.println(MainVisitor.getInstance(globalVars).visit(tree));
 	}
 }

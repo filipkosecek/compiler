@@ -7,9 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExpressionVisitor extends cssBaseVisitor<Expression> {
+    private static ExpressionVisitor instance = null;
+
+    public static ExpressionVisitor getInstance(GlobalContext globalContext) {
+        if (instance == null)
+            instance = new ExpressionVisitor(globalContext);
+        return instance;
+    }
+
     private final GlobalContext globalContext;
 
-    public ExpressionVisitor(GlobalContext globalContext) {
+    private ExpressionVisitor(GlobalContext globalContext) {
         this.globalContext = globalContext;
     }
 
@@ -204,7 +212,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         StringBuilder code = new StringBuilder();
         if (ctx.funcParamList() != null) {
             ST argListTemplate = globalContext.templateGroup.getInstanceOf("argList");
-            List<Expression> parameters = new FuncParamListVisitor(globalContext).visit(ctx.funcParamList());
+            List<Expression> parameters = FuncParamListVisitor.getInstance(globalContext).visit(ctx.funcParamList());
             List<Variable> signature = function.getArguments();
             if (parameters.size() != function.getArgumentCount())
                 globalContext.handleFatalError("Function argument count does not match.");
@@ -253,7 +261,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     @Override
     public Expression visitTypeCastExpr(cssParser.TypeCastExprContext ctx) {
         Expression expression = visit(ctx.expression());
-        VarType destinationType = new TypeVisitor().visit(ctx.type());
+        VarType destinationType = TypeVisitor.getInstance().visit(ctx.type());
         VarType sourceType = expression.type();
         int destinationDimensionCount = ctx.LEFT_SQUARE().size();
         if (destinationDimensionCount != expression.dimensionCount())

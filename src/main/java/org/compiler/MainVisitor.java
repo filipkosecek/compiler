@@ -6,12 +6,19 @@ import org.gen.*;
 import java.util.List;
 
 public class MainVisitor extends cssBaseVisitor<String> {
+	private static MainVisitor instance = null;
+	public static MainVisitor getInstance(GlobalContext globalContext) {
+		if (instance == null)
+			instance = new MainVisitor(globalContext);
+		return instance;
+	}
+
 	private final GlobalContext globalContext;
 	private final FunctionArgumentListVisitor functionArgumentListVisitor;
 
-	public MainVisitor(GlobalContext globalContext) {
+	private MainVisitor(GlobalContext globalContext) {
 		this.globalContext = globalContext;
-		functionArgumentListVisitor = new FunctionArgumentListVisitor(globalContext);
+		functionArgumentListVisitor = FunctionArgumentListVisitor.getInstance(globalContext);
 	}
 
 	/**
@@ -42,7 +49,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			globalContext.handleFatalError("Function already declared.");
 
 		globalContext.addNewScope();
-		VarType returnType = new TypeVisitor().visit(ctx.type());
+		VarType returnType = TypeVisitor.getInstance().visit(ctx.type());
 
 		List<Variable> argList;
 		String argListCode;
@@ -73,7 +80,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			functionDef.add("paramInit", paramInit.render());
 		}
 
-		Statement statement = new StatementVisitor(globalContext).visit(ctx.codeBlock());
+		Statement statement = StatementVisitor.getInstance(globalContext).visit(ctx.codeBlock());
 		functionDef.add("returnType", globalContext.variableTypeToLLType(returnType));
 		functionDef.add("name", ctx.ID().getText());
 		functionDef.add("argumentList", argListCode);
@@ -106,13 +113,13 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	 */
 	@Override
 	public String visitCodeFragmentExpr(cssParser.CodeFragmentExprContext ctx) {
-		Expression expression = new ExpressionVisitor(globalContext).visit(ctx.expression());
+		Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
 		return expression.code();
 	}
 
 	@Override
 	public String visitVarDeclBlock(cssParser.VarDeclBlockContext ctx) {
-		VarType type = new TypeVisitor().visit(ctx.type());
+		VarType type = TypeVisitor.getInstance().visit(ctx.type());
 		globalContext.setCurrentDeclarationType(type);
 		ST template = globalContext.templateGroup.getInstanceOf("declarationBlock");
 		for (int i = 0; i < ctx.declAssign().size(); ++i) {
@@ -141,7 +148,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		template.add("type", globalContext.variableTypeToLLType(type));
 
 		if (ctx.expression() != null) {
-			Expression assignValue = new ExpressionVisitor(globalContext).visit(ctx.expression());
+			Expression assignValue = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
 			if (assignValue.type() != type) {
 				globalContext.handleFatalError("types don't match");
 				throw new RuntimeException("ghji");
