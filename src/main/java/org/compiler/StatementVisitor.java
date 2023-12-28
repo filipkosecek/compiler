@@ -86,7 +86,14 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         whileTemplate.add("bodyCodeBlock", codeBlock.code());
         whileTemplate.add("expressionType", globalContext.variableTypeToLLType(expression.type()));
         whileTemplate.add("expressionReg", expression.returnRegister());
-        whileTemplate.add("labelBody", codeBlock.firstLabel());
+        String labelBody;
+        if (codeBlock.firstLabel() == null) {
+            labelBody = globalContext.genNewLabel();
+            whileTemplate.add("addBodyLabel", true);
+        } else {
+            labelBody = codeBlock.firstLabel();
+        }
+        whileTemplate.add("labelBody", labelBody);
         return new Statement(firstLabel, whileTemplate.render());
     }
 

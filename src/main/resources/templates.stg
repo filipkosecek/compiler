@@ -212,11 +212,13 @@ concatCodeBlock(code, addFirstLabel, firstLabel) ::= <<
 <code; separator="\n">
 >>
 
-while(tmpReg, expressionCode, expressionType, expressionReg, labelBody, labelBegin, labelEnd, bodyCodeBlock) ::= <<
+while(tmpReg, expressionCode, expressionType, expressionReg, labelBody, addBodyLabel, labelBegin, labelEnd, bodyCodeBlock) ::= <<
 <labelBegin>:
     <expressionCode>
     <tmpReg> = icmp ne <expressionType> <expressionReg>, 0
     br i1 <tmpReg>, label %<labelBody>, label %<labelEnd>
+<if(addBodyLabel)><labelBody>
+<endif>
 <bodyCodeBlock>
     br label %<labelBegin>
 <labelEnd>:
