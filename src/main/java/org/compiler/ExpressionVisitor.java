@@ -340,6 +340,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         template.add("type", globalContext.variableTypeToLLType(first.type()));
         template.add("value1", first.returnRegister());
         template.add("value2", second.returnRegister());
+        template.add("tmpReg", globalContext.getNewReg());
         return new Expression(expressionCode + "\n" + template.render(), destReg,
                 first.type(), 0);
     }

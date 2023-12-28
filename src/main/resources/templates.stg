@@ -14,7 +14,7 @@ globalString(name, size, body) ::= <<
 >>
 
 globalStringAccess(dest, name, size) ::= <<
-<dest> = i8* getelementptr [<size> x i8], [<size> x i8]*, i32 0, i32 0 <name>
+<dest> = getelementptr [<size> x i8], [<size> x i8]* <name>, i32 0, i32 0
 >>
 
 paramInit(destReg, type, initValue, ptrType) ::= <<
@@ -71,7 +71,7 @@ argList(arg) ::= <<
 
 functionCall(destReg, returnValue, returnType, id, argList, computeParameters) ::= <<
 <computeParameters>
-<if(returnValue)><destReg> = call <returnType> <id>(<argList>)
+<if(returnValue)><destReg> = call <returnType> @<id>(<argList>)
 <else>call <returnType> <id>(<argList>)
 <endif>
 >>
@@ -96,64 +96,75 @@ logicalNot(destReg, type, value, valueCode) ::= <<
 >>
 
 /* same signature begin */
-subtract(destReg, type, value1, value2) ::= <<
+/* tmpReg is here just for compatibility with relation operations */
+subtract(destReg, type, value1, value2, tmpReg) ::= <<
 <destReg> = sub <type> <value1>, <value2>
 >>
 
-multiplication(destReg, type, value1, value2) ::= <<
+multiplication(destReg, type, value1, value2, tmpReg) ::= <<
 <destReg> = mul <type> <value1>, <value2>
 >>
 
-addition(destReg, type, value1, value2) ::= <<
+addition(destReg, type, value1, value2, tmpReg) ::= <<
 <destReg> = add <type> <value1>, <value2>
 >>
 
-signedModulo(destReg, type, value1, value2) ::= <<
+signedModulo(destReg, type, value1, value2, tmpReg) ::= <<
 <destReg> = srem <type> <value1>, <value2>
 >>
 
-unsignedModulo(destReg, type, value1, value2) ::= <<
+unsignedModulo(destReg, type, value1, value2, tmpReg) ::= <<
 <destReg> = urem <type> <value1>, <value2>
 >>
 
-cmpEQ(destReg, type, value1, value2) ::= <<
-<destReg> = icmp eq <type> <value1>, <value2>
+cmpEQ(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp eq <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpNE(destReg, type, value1, value2) ::= <<
-<destReg> = icmp ne <type> <value1>, <value2>
+cmpNE(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp ne <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpUGT(destReg, type, value1, value2) ::= <<
-<destReg> = icmp ugt <type> <value1>, <value2>
+cmpUGT(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp ugt <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpUGE(destReg, type, value1, value2) ::= <<
-<destReg> = icmp uge <type> <value1>, <value2>
+cmpUGE(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp uge <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpULT(destReg, type, value1, value2) ::= <<
-<destReg> = icmp ult <type> <value1>, <value2>
+cmpULT(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp ult <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpULE(destReg, type, value1, value2) ::= <<
-<destReg> = icmp ule <type> <value1>, <value2>
+cmpULE(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp ule <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpSGT(destReg, type, value1, value2) ::= <<
-<destReg> = icmp sgt <type> <value1>, <value2>
+cmpSGT(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp sgt <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpSGE(destReg, type, value1, value2) ::= <<
-<destReg> = icmp sge <type> <value1>, <value2>
+cmpSGE(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp sge <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpSLT(destReg, type, value1, value2) ::= <<
-<destReg> = icmp slt <type> <value1>, <value2>
+cmpSLT(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp slt <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 
-cmpSLE(destReg, type, value1, value2) ::= <<
-<destReg> = icmp sle <type> <value1>, <value2>
+cmpSLE(destReg, type, value1, value2, tmpReg) ::= <<
+<tmpReg> = icmp sle <type> <value1>, <value2>
+<destReg> = zext i1 <tmpReg> to <type>
 >>
 /* same signature end */
 
