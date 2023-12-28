@@ -124,8 +124,16 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         ifTemplate.add("exprType", globalContext.variableTypeToLLType(expression.type()));
         ifTemplate.add("exprReg", expression.returnRegister());
         ifTemplate.add("tmpReg", globalContext.getNewReg());
-        ifTemplate.add("ifBodyLabel", codeBlock.firstLabel());
+        String bodyLabel;
+        if (codeBlock.firstLabel() == null) {
+            ifTemplate.add("addBodyLabel", true);
+            bodyLabel = globalContext.genNewLabel();
+        } else {
+            bodyLabel = globalContext.genNewLabel();
+        }
+        ifTemplate.add("ifBodyLabel", bodyLabel);
         ifTemplate.add("ifBodyCode", codeBlock.code());
+
         Statement else_ = null;
         globalContext.getLastScope().ifEndLabel = globalContext.genNewLabel();
         ifTemplate.add("labelEnd", globalContext.getLastScope().ifEndLabel);
@@ -171,19 +179,29 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         elif.add("next", globalContext.getLastScope().nextElifLabel);
         String firstLabel = globalContext.genNewLabel();
         elif.add("firstLabel", firstLabel);
+        String bodyLabel;
+        if (body.firstLabel() == null) {
+            elif.add("addCodeBodyLabel", true);
+            bodyLabel = globalContext.genNewLabel();
+        } else {
+            bodyLabel = body.firstLabel();
+        }
+        elif.add("codeBodyLabel", bodyLabel);
         elif.add("labelEnd", globalContext.getLastScope().ifEndLabel);
         return new Statement(firstLabel, elif.render());
     }
 
     @Override
     public Statement visitElse(cssParser.ElseContext ctx) {
+        ST elseStat = globalContext.templateGroup.getInstanceOf("else_");
         Statement codeBlock = visit(ctx.codeBlock());
         String firstLabel;
-        if (codeBlock.firstLabel() == null)
+        if (codeBlock.firstLabel() == null) {
             firstLabel = globalContext.genNewLabel();
-        else
-            firstLabel = globalContext.genNewLabel();
-        ST elseStat = globalContext.templateGroup.getInstanceOf("else_");
+            elseStat.add("addFirstLabel", true);
+        } else {
+            firstLabel = codeBlock.firstLabel();
+        }
         elseStat.add("firstLabel", firstLabel);
         elseStat.add("code", codeBlock.code());
         elseStat.add("labelEnd", globalContext.getLastScope().ifEndLabel);

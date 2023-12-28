@@ -227,10 +227,12 @@ return(retReg, type, expressionCode) ::= <<
 ret <type> <retReg>
 >>
 
-if(exprCode, exprType, exprReg, tmpReg, ifBodyLabel, ifBodyCode, labelEnd, next, elif, else_) ::= <<
+if(exprCode, exprType, exprReg, tmpReg, addBodyLabel, ifBodyLabel, ifBodyCode, labelEnd, next, elif, else_) ::= <<
 <exprCode>
 <tmpReg> = icmp ne <exprType> 0, <exprReg>
 br i1 <tmpReg>, label %<ifBodyLabel>, label %<next>
+<if(addBodyLabel)><ifBodyLabel>:
+<endif>
 <ifBodyCode>
 br label %<labelEnd>
 <elif; separator="\n">
@@ -238,17 +240,20 @@ br label %<labelEnd>
 <labelEnd>:
 >>
 
-elif(firstLabel, exprCode, exprType, exprReg, tmpReg, next, codeBodyLabel, codeBody, labelEnd) ::= <<
+elif(firstLabel, exprCode, exprType, exprReg, tmpReg, next, addCodeBodyLabel, codeBodyLabel, codeBody, labelEnd) ::= <<
 <firstLabel>:
 <exprCode>
 <tmpReg> = icmp ne <exprType> 0, <exprReg>
 br i1 <tmpReg>, label %<codeBodyLabel>, label %<next>
+<if(addCodeBodyLabel)><codeBodyLabel>:
+<endif>
 <codeBody>
 br label %<labelEnd>
 >>
 
-else_(firstLabel, code, labelEnd) ::= <<
-<firstLabel>:
+else_(firstLabel, addFirstLabel, code, labelEnd) ::= <<
+<if(addFirstLabel)><firstLabel>:
+<endif>
 <code>
 br label %<labelEnd>
 >>
