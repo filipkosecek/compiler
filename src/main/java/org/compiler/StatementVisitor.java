@@ -127,12 +127,14 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         ifTemplate.add("ifBodyLabel", codeBlock.firstLabel());
         ifTemplate.add("ifBodyCode", codeBlock.code());
         Statement else_ = null;
-        globalContext.getLastScope().nextElifLabel = globalContext.genNewLabel();
-        ifTemplate.add("labelEnd", globalContext.getLastScope().nextElifLabel);
+        globalContext.getLastScope().ifEndLabel = globalContext.genNewLabel();
+        ifTemplate.add("labelEnd", globalContext.getLastScope().ifEndLabel);
         if (ctx.else_() != null) {
             else_ = visit(ctx.else_());
             ifTemplate.add("else_", else_.code());
             globalContext.getLastScope().nextElifLabel = else_.firstLabel();
+        } else {
+            globalContext.getLastScope().nextElifLabel = globalContext.getLastScope().ifEndLabel;
         }
 
         ArrayList<Statement> elifs = new ArrayList<>(ctx.elif().size());
@@ -169,17 +171,22 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         elif.add("next", globalContext.getLastScope().nextElifLabel);
         String firstLabel = globalContext.genNewLabel();
         elif.add("firstLabel", firstLabel);
+        elif.add("labelEnd", globalContext.getLastScope().ifEndLabel);
         return new Statement(firstLabel, elif.render());
     }
 
     @Override
     public Statement visitElse(cssParser.ElseContext ctx) {
         Statement codeBlock = visit(ctx.codeBlock());
-        String firstLabel = globalContext.getLastScope().nextElifLabel;
+        String firstLabel;
+        if (codeBlock.firstLabel() == null)
+            firstLabel = globalContext.genNewLabel();
+        else
+            firstLabel = globalContext.genNewLabel();
         ST elseStat = globalContext.templateGroup.getInstanceOf("else_");
         elseStat.add("firstLabel", firstLabel);
         elseStat.add("code", codeBlock.code());
-        elseStat.add("nextLabel", globalContext.getLastScope().nextElifLabel);
+        elseStat.add("labelEnd", globalContext.getLastScope().ifEndLabel);
         return new Statement(firstLabel, elseStat.render());
     }
 }

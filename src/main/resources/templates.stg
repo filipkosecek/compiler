@@ -247,8 +247,8 @@ br i1 <tmpReg>, label %<codeBodyLabel>, label %<next>
 br label %<labelEnd>
 >>
 
-else_(firstLabel, code, nextLabel) ::= <<
+else_(firstLabel, code, labelEnd) ::= <<
 <firstLabel>:
 <code>
-br label %<nextLabel>
+br label %<labelEnd>
 >>

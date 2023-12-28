@@ -5,8 +5,9 @@ import java.util.HashMap;
 public class ScopeInfo {
     private final HashMap<String, Variable> variables;
 
-    /* Inherited attribute for elif statements */
-    public String nextElifLabel;
+    /* Inherited attributes for elif statements */
+    public String nextElifLabel = null;
+    public String ifEndLabel = null;
 
     public ScopeInfo() {
         variables = new HashMap<>();
