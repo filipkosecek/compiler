@@ -61,7 +61,13 @@ public class GlobalContext {
     }
 
     public void addNewScope() {
-        scopeStack.push(new ScopeInfo());
+        ScopeInfo newScopeInfo = new ScopeInfo();
+        ScopeInfo oldScopeInfo = scopeStack.peek();
+        if (oldScopeInfo != null) {
+            newScopeInfo.currentLoopBegLabel = oldScopeInfo.currentLoopBegLabel;
+            newScopeInfo.currentLoopEndLabel = oldScopeInfo.currentLoopEndLabel;
+        }
+        scopeStack.push(newScopeInfo);
     }
 
     public void popScope() {

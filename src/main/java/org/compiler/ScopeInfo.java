@@ -9,6 +9,12 @@ public class ScopeInfo {
     public String nextElifLabel = null;
     public String ifEndLabel = null;
 
+    /* Inherited attribute for CONTINUE */
+    public String currentLoopBegLabel = null;
+
+    /* Inherited attribute for BREAK */
+    public String currentLoopEndLabel = null;
+
     public ScopeInfo() {
         variables = new HashMap<>();
     }

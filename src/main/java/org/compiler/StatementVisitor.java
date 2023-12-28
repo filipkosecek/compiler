@@ -72,6 +72,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     @Override
     public Statement visitWhile(cssParser.WhileContext ctx) {
         String firstLabel = globalContext.genNewLabel();
+        String endLabel = globalContext.genNewLabel();
+        globalContext.getLastScope().currentLoopBegLabel = firstLabel;
+        globalContext.getLastScope().currentLoopEndLabel = endLabel;
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("only simple expression can go to while");
@@ -82,7 +85,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         whileTemplate.add("tmpReg", globalContext.getNewReg());
         whileTemplate.add("expressionCode", expression.code());
         whileTemplate.add("labelBegin", firstLabel);
-        whileTemplate.add("labelEnd", globalContext.genNewLabel());
+        whileTemplate.add("labelEnd", endLabel);
         whileTemplate.add("bodyCodeBlock", codeBlock.code());
         whileTemplate.add("expressionType", globalContext.variableTypeToLLType(expression.type()));
         whileTemplate.add("expressionReg", expression.returnRegister());
@@ -212,5 +215,19 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         elseStat.add("code", codeBlock.code());
         elseStat.add("labelEnd", globalContext.getLastScope().ifEndLabel);
         return new Statement(firstLabel, elseStat.render());
+    }
+
+    @Override
+    public Statement visitStatementCont(cssParser.StatementContContext ctx) {
+        ST template = globalContext.templateGroup.getInstanceOf("continue");
+        template.add("begLoopLabel", globalContext.getLastScope().currentLoopBegLabel);
+        return new Statement(null, template.render());
+    }
+
+    @Override
+    public Statement visitStatementBreak(cssParser.StatementBreakContext ctx) {
+        ST template = globalContext.templateGroup.getInstanceOf("break");
+        template.add("endLoopLabel", globalContext.getLastScope().currentLoopEndLabel);
+        return new Statement(null, template.render());
     }
 }
