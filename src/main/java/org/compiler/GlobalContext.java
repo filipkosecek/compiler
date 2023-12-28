@@ -77,7 +77,7 @@ public class GlobalContext {
     }
 
     public ScopeInfo getLastScope() {
-        return scopeStack.getLast();
+        return scopeStack.peek();
     }
 
     public void assignNewRegister(String id, String newRegister) {

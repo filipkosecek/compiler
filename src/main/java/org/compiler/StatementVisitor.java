@@ -3,6 +3,7 @@ package org.compiler;
 import org.gen.*;
 import org.stringtemplate.v4.ST;
 
+import javax.swing.plaf.nimbus.State;
 import java.util.ArrayList;
 
 public class StatementVisitor extends cssBaseVisitor<Statement> {
@@ -108,5 +109,70 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         returnTemplate.add("retReg", expression.returnRegister());
         returnTemplate.add("expressionCode", expression.code());
         return new Statement(null, returnTemplate.render());
+    }
+
+    @Override
+    public Statement visitIf(cssParser.IfContext ctx) {
+        ST ifTemplate = globalContext.templateGroup.getInstanceOf("if");
+        Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
+        if (expression.dimensionCount() != 0) {
+            globalContext.handleFatalError("Only non-array expressions can be in if.");
+            throw new RuntimeException("bad");
+        }
+        Statement codeBlock = visit(ctx.codeBlock());
+        ifTemplate.add("exprCode", expression.code());
+        ifTemplate.add("exprType", globalContext.variableTypeToLLType(expression.type()));
+        ifTemplate.add("exprReg", expression.returnRegister());
+        ifTemplate.add("tmpReg", globalContext.getNewReg());
+        ifTemplate.add("ifBodyLabel", codeBlock.firstLabel());
+        ifTemplate.add("ifBodyCode", codeBlock.code());
+        Statement else_ = null;
+        globalContext.getLastScope().nextElifLabel = globalContext.genNewLabel();
+        if (ctx.else_() != null) {
+            else_ = visit(ctx.else_());
+            ifTemplate.add("else_", else_.code());
+            globalContext.getLastScope().nextElifLabel = else_.firstLabel();
+        }
+
+        for (int i = ctx.elif().size(); i >= 0; --i) {
+            Statement elif = visit(ctx.elif(i));
+            ifTemplate.add("elif", elif.code());
+            globalContext.getLastScope().nextElifLabel = elif.firstLabel();
+        }
+        ifTemplate.add("next", globalContext.getLastScope().nextElifLabel);
+        return new Statement(null, ifTemplate.render());
+    }
+
+    @Override
+    public Statement visitElif(cssParser.ElifContext ctx) {
+        Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
+        Statement body = visit(ctx.codeBlock());
+        if (expression.dimensionCount() != 0) {
+            globalContext.handleFatalError("Only non-array expressions can be in if.");
+            throw new RuntimeException("bad");
+        }
+
+        ST elif = globalContext.templateGroup.getInstanceOf("elif");
+        elif.add("exprCode", expression.code());
+        elif.add("exprType", globalContext.variableTypeToLLType(expression.type()));
+        elif.add("exprReg", expression.returnRegister());
+        elif.add("tmpReg", globalContext.getNewReg());
+        elif.add("codeBodyLabel", body.firstLabel());
+        elif.add("codeBody", body.code());
+        elif.add("next", globalContext.getLastScope().nextElifLabel);
+        String firstLabel = globalContext.genNewLabel();
+        elif.add("firstLabel", firstLabel);
+        return new Statement(firstLabel, elif.render());
+    }
+
+    @Override
+    public Statement visitElse(cssParser.ElseContext ctx) {
+        Statement codeBlock = visit(ctx.codeBlock());
+        String firstLabel = globalContext.getLastScope().nextElifLabel;
+        ST elseStat = globalContext.templateGroup.getInstanceOf("else_");
+        elseStat.add("firstLabel", firstLabel);
+        elseStat.add("code", codeBlock.code());
+        elseStat.add("nextLabel", globalContext.genNewLabel());
+        return new Statement(firstLabel, elseStat.render());
     }
 }

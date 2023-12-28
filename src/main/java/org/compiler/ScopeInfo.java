@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 public class ScopeInfo {
     private final HashMap<String, Variable> variables;
+    public String nextElifLabel;
 
     public ScopeInfo() {
         variables = new HashMap<>();

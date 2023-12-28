@@ -14,7 +14,7 @@ globalString(name, size, body) ::= <<
 >>
 
 globalStringAccess(dest, name, size) ::= <<
-<dest> = getelementptr [<size> x i8], [<size> x i8]* <name>
+<dest> = i8* getelementptr [<size> x i8], [<size> x i8]*, i32 0, i32 0 <name>
 >>
 
 paramInit(destReg, type, initValue, ptrType) ::= <<
@@ -27,7 +27,7 @@ define <returnType> @<name>(<argumentList>)
 {
 init:
 	<paramInit; separator="\n">
-	br label <firstLabel>
+	br label %<firstLabel>
 	<code>
 <if(voidFunction)>
     ret void
@@ -191,7 +191,7 @@ simpleVarDeclaration(reg, type, init, value, ptrType, expressionCode) ::= <<
 
 codeFragment(code, jump, label) ::= <<
 <code>
-<if(jump)>br label <label>:
+<if(jump)>br label %<label>
 <endif>
 >>
 
@@ -205,13 +205,36 @@ while(tmpReg, expressionCode, expressionType, expressionReg, labelBody, labelBeg
 <labelBegin>:
     <expressionCode>
     <tmpReg> = icmp ne <expressionType> <expressionReg>, 0
-    br i1 <tmpReg>, label <labelBody>, label <labelEnd>
+    br i1 <tmpReg>, label %<labelBody>, label %<labelEnd>
 <bodyCodeBlock>
-    br label <labelBegin>
+    br label %<labelBegin>
 <labelEnd>:
 >>
 
 return(retReg, type, expressionCode) ::= <<
 <expressionCode>
 ret <type> <retReg>
+>>
+
+if(exprCode, exprType, exprReg, tmpReg, ifBodyLabel, ifBodyCode, next, elif, else_) ::= <<
+<exprCode>
+<tmpReg> = icmp ne <exprType> 0, <exprReg>
+br i1 <tmpReg>, label %<ifBodyLabel>, label %<next>
+<ifBodyCode>
+<elif; separator="\n">
+<else_>
+>>
+
+elif(firstLabel, exprCode, exprType, exprReg, tmpReg, next, codeBodyLabel, codeBody) ::= <<
+<firstLabel>:
+<exprCode>
+<tmpReg> = icmp ne <exprType> 0, <exprReg>
+br i1 <tmpReg>, label %<codeBodyLabel>, label %<next>
+<codeBody>
+>>
+
+else_(firstLabel, code, nextLabel) ::= <<
+<firstLabel>:
+<code>
+br label %<nextLabel>
 >>
