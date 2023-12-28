@@ -72,7 +72,7 @@ argList(arg) ::= <<
 functionCall(destReg, returnValue, returnType, id, argList, computeParameters) ::= <<
 <computeParameters>
 <if(returnValue)><destReg> = call <returnType> @<id>(<argList>)
-<else>call <returnType> <id>(<argList>)
+<else>call <returnType> @<id>(<argList>)
 <endif>
 >>
 
