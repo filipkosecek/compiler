@@ -267,3 +267,9 @@ br label %<begLoopLabel>
 break(endLoopLabel) ::= <<
 br label %<endLoopLabel>
 >>
+
+callPrintf(exprCode, tmpReg, formatStringSize, formatStringName, valueType, value) ::= <<
+<exprCode>
+<tmpReg> = getelementptr [<formatStringSize> x i8], [<formatStringSize> x i8]* <formatStringName>, i32 0, i32 0
+call i32 (i8*, ...) @printf(i8* <tmpReg>, <valueType> <value>)
+>>

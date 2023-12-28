@@ -53,7 +53,6 @@ variable
 expression
     : base=(INT | CHAR | STRING)                                    #baseExpr
     | variable                                                      #idExpr
-	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
 	| INC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #incExpr
 	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #decExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
@@ -66,6 +65,7 @@ expression
 	| expression binOp=(LT | LTE | GT | GTE | EQ | NEQ) expression  #binOpExpr
 	| expression binOp=LOGICAL_AND expression                       #binOpExpr
 	| expression binOp=LOGICAL_OR expression                        #binOpExpr
+	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
 	| NEW type (LEFT_SQUARE expression RIGHT_SQUARE)*               #allocExpr
 ;
 

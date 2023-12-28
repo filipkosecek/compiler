@@ -239,18 +239,38 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             throw new RuntimeException("bad");
         }
 
-        ST formatString = globalContext.templateGroup.getInstanceOf("globalString");
+        String formatStringName;
+        ST printfTemplate = globalContext.templateGroup.getInstanceOf("callPrintf");
+        printfTemplate.add("exprCode", value.code());
+        printfTemplate.add("tmpReg", globalContext.getNewReg());
         switch (value.type()) {
             case VarType.BYTE:
                 if (value.dimensionCount() == 0) {
-
+                    formatStringName = "@formatByte";
                 } else if (value.dimensionCount() == 1) {
-
+                    formatStringName = "@formatStr";
                 } else {
                     globalContext.handleFatalError("Only strings and simple expressions can be printed.");
                     throw new RuntimeException("bad");
                 }
+                break;
+            case VarType.UBYTE:
+                formatStringName = "@formatUbyte";
+                break;
+            case VarType.INT:
+                formatStringName = "@formatInt";
+                break;
+            case VarType.UINT:
+                formatStringName = "@formatUint";
+                break;
+            default:
+                throw new RuntimeException("This case should never happen.");
         }
-        return null;
+        String formatString = globalContext.globalStrings.get(formatStringName);
+        printfTemplate.add("formatStringName", formatStringName);
+        printfTemplate.add("formatStringSize", formatString.length() + 1);
+        printfTemplate.add("valueType", globalContext.variableTypeToLLType(value.type()));
+        printfTemplate.add("value", value.returnRegister());
+        return new Statement(null, printfTemplate.render());
     }
 }
