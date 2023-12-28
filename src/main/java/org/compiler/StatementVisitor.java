@@ -129,7 +129,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             ifTemplate.add("addBodyLabel", true);
             bodyLabel = globalContext.genNewLabel();
         } else {
-            bodyLabel = globalContext.genNewLabel();
+            bodyLabel = codeBlock.firstLabel();
         }
         ifTemplate.add("ifBodyLabel", bodyLabel);
         ifTemplate.add("ifBodyCode", codeBlock.code());
@@ -174,7 +174,6 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         elif.add("exprType", globalContext.variableTypeToLLType(expression.type()));
         elif.add("exprReg", expression.returnRegister());
         elif.add("tmpReg", globalContext.getNewReg());
-        elif.add("codeBodyLabel", body.firstLabel());
         elif.add("codeBody", body.code());
         elif.add("next", globalContext.getLastScope().nextElifLabel);
         String firstLabel = globalContext.genNewLabel();
