@@ -48,7 +48,8 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 template.add("destReg", destReg);
                 template.add("type", "i8");
                 template.add("value1", "0");
-                template.add("value2", String.valueOf(ctx.CHAR().getText()));
+                int c = ctx.CHAR().getText().charAt(1);
+                template.add("value2", String.valueOf(c));
                 return new Expression(template.render(), destReg, VarType.BYTE, 0);
             case cssParser.INT:
                 template = globalContext.templateGroup.getInstanceOf("addition");

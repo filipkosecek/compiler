@@ -230,4 +230,27 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         template.add("endLoopLabel", globalContext.getLastScope().currentLoopEndLabel);
         return new Statement(null, template.render());
     }
+
+    @Override
+    public Statement visitStatementOutput(cssParser.StatementOutputContext ctx) {
+        Expression value = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
+        if (value.dimensionCount() > 0 && value.type() != VarType.BYTE) {
+            globalContext.handleFatalError("Only strings and simple expressions can be printed.");
+            throw new RuntimeException("bad");
+        }
+
+        ST formatString = globalContext.templateGroup.getInstanceOf("globalString");
+        switch (value.type()) {
+            case VarType.BYTE:
+                if (value.dimensionCount() == 0) {
+
+                } else if (value.dimensionCount() == 1) {
+
+                } else {
+                    globalContext.handleFatalError("Only strings and simple expressions can be printed.");
+                    throw new RuntimeException("bad");
+                }
+        }
+        return null;
+    }
 }
