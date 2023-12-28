@@ -71,7 +71,9 @@ public class GlobalContext {
     public void addToLastScope(String id, Variable var) {
         if (isVariableDeclared(id))
             handleFatalError("variable name collision");
-        scopeStack.getLast().addVariable(id, var);
+        if (scopeStack.isEmpty())
+            throw new RuntimeException("bad");
+        scopeStack.peek().addVariable(id, var);
     }
 
     public ScopeInfo getLastScope() {
