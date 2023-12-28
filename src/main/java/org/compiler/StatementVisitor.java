@@ -128,13 +128,14 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         ifTemplate.add("ifBodyCode", codeBlock.code());
         Statement else_ = null;
         globalContext.getLastScope().nextElifLabel = globalContext.genNewLabel();
+        ifTemplate.add("labelEnd", globalContext.getLastScope().nextElifLabel);
         if (ctx.else_() != null) {
             else_ = visit(ctx.else_());
             ifTemplate.add("else_", else_.code());
             globalContext.getLastScope().nextElifLabel = else_.firstLabel();
         }
 
-        for (int i = ctx.elif().size(); i >= 0; --i) {
+        for (int i = ctx.elif().size() - 1; i >= 0; --i) {
             Statement elif = visit(ctx.elif(i));
             ifTemplate.add("elif", elif.code());
             globalContext.getLastScope().nextElifLabel = elif.firstLabel();
@@ -172,7 +173,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         ST elseStat = globalContext.templateGroup.getInstanceOf("else_");
         elseStat.add("firstLabel", firstLabel);
         elseStat.add("code", codeBlock.code());
-        elseStat.add("nextLabel", globalContext.genNewLabel());
+        elseStat.add("nextLabel", globalContext.getLastScope().nextElifLabel);
         return new Statement(firstLabel, elseStat.render());
     }
 }

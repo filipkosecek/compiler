@@ -183,7 +183,7 @@ logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, expressionCode1, expr
 <expressionCode2>
 <tmp1> = icmp ne <type> 0, <value1>
 <tmp2> = icmp ne <type> 0, <value2>
-<tmp3> = or i1 <tmp2>, <tmp4>
+<tmp3> = or i1 <tmp2>, <tmp2>
 <destReg> = zext i1 <tmp3> to <type>
 >>
 /* same signature end */
@@ -227,13 +227,14 @@ return(retReg, type, expressionCode) ::= <<
 ret <type> <retReg>
 >>
 
-if(exprCode, exprType, exprReg, tmpReg, ifBodyLabel, ifBodyCode, next, elif, else_) ::= <<
+if(exprCode, exprType, exprReg, tmpReg, ifBodyLabel, ifBodyCode, labelEnd, next, elif, else_) ::= <<
 <exprCode>
 <tmpReg> = icmp ne <exprType> 0, <exprReg>
 br i1 <tmpReg>, label %<ifBodyLabel>, label %<next>
 <ifBodyCode>
 <elif; separator="\n">
 <else_>
+<labelEnd>:
 >>
 
 elif(firstLabel, exprCode, exprType, exprReg, tmpReg, next, codeBodyLabel, codeBody) ::= <<
