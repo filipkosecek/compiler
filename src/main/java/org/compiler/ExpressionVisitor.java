@@ -339,4 +339,15 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         }
         return genBinOpExpr(templateName, expressionCode, first, second);
     }
+
+    @Override
+    public Expression visitDeclTypeArray(cssParser.DeclTypeArrayContext ctx) {
+        if (ctx.expression() == null)
+            return null;
+        Expression size =  visit(ctx.expression());
+        if (size.dimensionCount() != 0) {
+            throw new RuntimeException("Index must be non-array.");
+        }
+        return size;
+    }
 }

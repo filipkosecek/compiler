@@ -3,9 +3,17 @@ package org.compiler;
 import org.gen.cssParser;
 import org.stringtemplate.v4.*;
 import org.gen.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainVisitor extends cssBaseVisitor<String> {
+	/* these three integer values are used in allocateArrayLevels */
+	private int sizeRegisterCounter = 1;
+	private int tmpRegisterCounter = 1;
+	private int iRegisterCounter = 1;
+	private int allocLoopLabelCounter = 1;
+
 	private static MainVisitor instance = null;
 	public static MainVisitor getInstance(GlobalContext globalContext) {
 		if (instance == null)
@@ -128,7 +136,109 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return template.render();
 	}
 
-	//TODO array declaration
+	private Pair<String, String> generateAllocLoops(ArrayList<Expression> sizes,
+													  ArrayList<String> iterationVars,
+									  				String previousHeaderLabel,
+													String previousAllocReg,
+													int index,
+													VarType type) {
+		int level = sizes.size() - index;
+		String begLoopLabel = globalContext.genNewLabel();
+		String loopHeaderLabel = globalContext.genNewLabel();
+		String reg4 = globalContext.getNewReg();
+		ST template = globalContext.templateGroup.getInstanceOf("allocLoop");
+		template.add("allocAmountParentType", globalContext.variableTypeToLLType(sizes.get(index - 1).type()));
+		template.add("iType", globalContext.llPointer(sizes.get(index - 1).type(), 1));
+		template.add("i", iterationVars.get(index));
+		template.add("loopHeaderLabel", loopHeaderLabel);
+		template.add("cmp", globalContext.getNewReg());
+		template.add("allocAmountParentReg", sizes.get(index - 1).returnRegister());
+		template.add("reg1", globalContext.getNewReg());
+		template.add("reg2", globalContext.getNewReg());
+		template.add("bodyLabel", globalContext.genNewLabel());
+		template.add("endLabel", previousHeaderLabel);
+		template.add("reg3", globalContext.getNewReg());
+		template.add("reg4", reg4);
+		template.add("allocPtrType", globalContext.llPointer(type, level - 1));
+		template.add("allocAmountCurrentType", globalContext.variableTypeToLLType(sizes.get(index).type()));
+		template.add("allocAmountCurrentReg", sizes.get(index).returnRegister());
+		template.add("parentPtrType", globalContext.llPointer(type, level + 1));
+		template.add("parentPtr", previousAllocReg);
+		template.add("begLoopLabel", begLoopLabel);
+		template.add("reg5", globalContext.getNewReg());
+		template.add("currentPtrType", globalContext.llPointer(type, level));
+
+		if (level > 1) {
+			template.add("addSubLoop", true);
+			Pair<String, String> p = generateAllocLoops(sizes, iterationVars,
+					loopHeaderLabel, reg4, index + 1, type);
+			template.add("subLoop", p.p1);
+			template.add("subLoopLabel", p.p2);
+		}
+		return new Pair<>(template.render(), begLoopLabel);
+	}
+
+	private String allocateArrayLevels(Variable var, ArrayList<Expression> sizes) {
+		ArrayList<String> iRegisters = new ArrayList<>(var.getDimensionCount());
+		for (int i = 0; i < var.getDimensionCount(); ++i) {
+			iRegisters.add(String.format("%%i%d_%d", i, iRegisterCounter++));
+		}
+		ST allocInit = globalContext.templateGroup.getInstanceOf("allocInit");
+		for (int i = 0; i < var.getDimensionCount(); ++i) {
+			if (i > 0) {
+				ST alloca = globalContext.templateGroup.getInstanceOf("alloca");
+				alloca.add("dest", iRegisters.get(i));
+				alloca.add("type", globalContext.variableTypeToLLType(sizes.get(i - 1).type()));
+				allocInit.add("indicesInitCode", alloca.render());
+			}
+			allocInit.add("exprCode", sizes.get(i).code());
+		}
+
+		String endLabel = globalContext.genNewLabel();
+		ST firstLoop = globalContext.templateGroup.getInstanceOf("firstAllocLoop");
+		firstLoop.add("init", allocInit.render());
+		String resultReg = var.getLlName();
+		firstLoop.add("resultReg", resultReg);
+		firstLoop.add("allocPtrType", globalContext.llPointer(var.getType(), sizes.size() - 1));
+		firstLoop.add("allocAmountType", globalContext.variableTypeToLLType(sizes.getFirst().type()));
+		firstLoop.add("allocAmountReg", sizes.getFirst().returnRegister());
+		if (sizes.size() > 1) {
+			firstLoop.add("addSubLoop", true);
+			firstLoop.add("endLabel", endLabel);
+			Pair<String, String> p = generateAllocLoops(sizes, iRegisters, endLabel, resultReg, 1, var.getType());
+			firstLoop.add("subLoop", p.p1);
+			firstLoop.add("subLoopLabel", p.p2);
+		}
+		return firstLoop.render();
+	}
+
+	private String visitDeclAssignArray(cssParser.DeclAssignContext ctx, VarType type) {
+		ArrayList<Expression> sizes = new ArrayList<>(ctx.declTypeArray().size());
+		boolean containsNull = false, containsSome = false;
+		for (int i = 0; i < ctx.declTypeArray().size(); ++i) {
+			Expression size = ExpressionVisitor.getInstance(globalContext).visit(ctx.declTypeArray(i));
+			if (size == null) {
+				containsNull = true;
+			} else {
+				containsSome = true;
+				sizes.add(size);
+			}
+		}
+		if (containsNull && containsSome) {
+			throw new RuntimeException("Array declaration must either have all levels empty or full.");
+		}
+
+		Variable var = new Variable(globalContext.getNewReg(), type, ctx.declTypeArray().size(),
+						false);
+		String code;
+		if (!containsSome)
+			code = "";
+		else
+			code = allocateArrayLevels(var, sizes);
+		globalContext.addToLastScope(ctx.ID().getText(), var);
+		return code;
+	}
+
 	@Override
 	public String visitDeclAssign(cssParser.DeclAssignContext ctx) {
 		Variable var = globalContext.getVariable(ctx.ID().getText());
@@ -138,10 +248,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			throw new RuntimeException("gjhj");
 		}
 
-		/*
-		 * TODO: add case for an array
-		 *  also check if numbers of dimensions equal
-		 */
+		if (!ctx.declTypeArray().isEmpty())
+			return visitDeclAssignArray(ctx, type);
+
 		String register = globalContext.getNewReg();
 		ST template = globalContext.templateGroup.getInstanceOf("simpleVarDeclaration");
 		template.add("reg", register);

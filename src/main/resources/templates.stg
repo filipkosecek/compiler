@@ -297,3 +297,47 @@ scanf(exprCode, tmpReg, formatStringSize, formatStringName, ptrType, ptr) ::= <<
 <tmpReg> = getelementptr [<formatStringSize> x i8], [<formatStringSize> x i8]* <formatStringName>, i32 0, i32 0
 call i32 (i8*, ...) @scanf(i8* <tmpReg>, <ptrType> <ptr>)
 >>
+
+alloca(dest, type) ::= <<
+<dest> = alloca <type>
+>>
+
+allocInit(exprCode, indicesInitCode) ::= <<
+<exprCode; separator="\n">
+<indicesInitCode; separator="\n">
+>>
+
+firstAllocLoop(resultReg, allocPtrType, addSubLoop, subLoopLabel, subLoop, allocAmountType, allocAmountReg, init, endLabel) ::= <<
+<init>
+<resultReg> = alloca <allocPtrType>, <allocAmountType> <allocAmountReg>
+<if(addSubLoop)>
+br label %<subLoopLabel>
+<subLoop>
+<endLabel>:
+<endif>
+>>
+
+allocLoop(begLoopLabel, loopHeaderLabel, bodyLabel, addSubLoop, subLoop, subLoopLabel,
+iType, i, allocPtrType, parentPtrType, parentPtr, endLabel,
+cmp, reg1, reg2, reg3, reg4, reg5, currentPtrType,
+allocAmountParentType, allocAmountParentReg, allocAmountCurrentType, allocAmountCurrentReg) ::= <<
+<begLoopLabel>:
+store <allocAmountParentType> 0, <iType> <i>
+br label %<loopHeaderLabel>
+<loopHeaderLabel>:
+<reg1> = load <allocAmountParentType>, <iType> <i>
+<reg2> = add <allocAmountParentType> <reg1>, 1
+<cmp> = icmp ult <allocAmountParentType> <reg2>, <allocAmountParentReg>
+store <allocAmountParentType> <reg2>, <iType> <i>
+br i1 <cmp>, label %<bodyLabel>, label %<endLabel>
+<bodyLabel>:
+<reg3> = load <allocAmountParentType>, <iType> <i>
+<reg4> = alloca <allocPtrType>, <allocAmountCurrentType> <allocAmountCurrentReg>
+<reg5> = getelementptr <currentPtrType>, <parentPtrType> <parentPtr>, <allocAmountParentType> <reg3>
+store <currentPtrType> <reg4>, <parentPtrType> <reg5>
+<if(addSubLoop)>
+br label %<subLoopLabel>:
+<subLoop>
+<endif>
+br label %<loopHeaderLabel>
+>>
