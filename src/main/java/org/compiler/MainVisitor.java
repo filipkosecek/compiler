@@ -157,7 +157,6 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		template.add("reg2", globalContext.getNewReg());
 		template.add("bodyLabel", globalContext.genNewLabel());
 		template.add("endLabel", previousHeaderLabel);
-		template.add("reg3", globalContext.getNewReg());
 		template.add("reg4", reg4);
 		template.add("allocPtrType", globalContext.llPointer(type, level - 1));
 		template.add("allocAmountCurrentType", globalContext.variableTypeToLLType(sizes.get(index).type()));
