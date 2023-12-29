@@ -1,5 +1,14 @@
 group templates ;
 
+concat(code) ::= <<
+<code; separator="\n">
+>>
+
+store(valueType, value, ptrType, ptr, emitCode) ::= <<
+<if(emitCode)>store <valueType> <value>, <ptrType> <ptr>
+<endif>
+>>
+
 program(programBody, globalVariables) ::= <<
 declare i32 @scanf(i8*, ...)
 declare i32 @printf(i8*, ...)

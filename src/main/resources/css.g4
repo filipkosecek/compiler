@@ -63,7 +63,7 @@ expression
 	| expression binOp=(LT | LTE | GT | GTE | EQ | NEQ) expression  #binOpExpr
 	| expression binOp=LOGICAL_AND expression                       #binOpExpr
 	| expression binOp=LOGICAL_OR expression                        #binOpExpr
-	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
+	| variable ASSIGN expression                                    #assignExpr
 ;
 
 funcParamList
@@ -76,7 +76,7 @@ statement
 	| CONTINUE SEMICOLON                                        #statementCont
 	| BREAK SEMICOLON                                           #statementBreak
 	| RETURN expression SEMICOLON                               #statementReturn
-	| INPUT ID (LEFT_SQUARE expression RIGHT_SQUARE)* SEMICOLON #statementInput
+	| INPUT variable SEMICOLON                                  #statementInput
 	| OUTPUT expression SEMICOLON                               #statementOutput
 ;
 
