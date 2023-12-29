@@ -53,8 +53,6 @@ variable
 expression
     : base=(INT | CHAR | STRING)                                    #baseExpr
     | variable                                                      #idExpr
-	| INC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #incExpr
-	| DEC ID (LEFT_SQUARE expression RIGHT_SQUARE)*                 #decExpr
 	| LEFT_BRACKET expression RIGHT_BRACKET                         #subExpr
 	| ID LEFT_BRACKET funcParamList? RIGHT_BRACKET                  #funcCallExpr
 	| unOp=(MINUS | LOGICAL_NOT) expression                         #unOpExpr
@@ -66,7 +64,6 @@ expression
 	| expression binOp=LOGICAL_AND expression                       #binOpExpr
 	| expression binOp=LOGICAL_OR expression                        #binOpExpr
 	| ID (LEFT_SQUARE expression RIGHT_SQUARE)* ASSIGN expression   #assignExpr
-	| NEW type (LEFT_SQUARE expression RIGHT_SQUARE)*               #allocExpr
 ;
 
 funcParamList
@@ -79,7 +76,6 @@ statement
 	| CONTINUE SEMICOLON                                        #statementCont
 	| BREAK SEMICOLON                                           #statementBreak
 	| RETURN expression SEMICOLON                               #statementReturn
-	| DELETE ID SEMICOLON                                       #statementDelete
 	| INPUT ID (LEFT_SQUARE expression RIGHT_SQUARE)* SEMICOLON #statementInput
 	| OUTPUT expression SEMICOLON                               #statementOutput
 ;
