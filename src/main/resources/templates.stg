@@ -50,6 +50,11 @@ arrayIndexing(tmpReg, destReg, ptrReg, destType, ptrType, indexType, indexReg, e
 <destReg> = load <destType>, <ptrType> <tmpReg>
 >>
 
+arrayGetPtr(exprCode, destReg, destType, ptrType, ptrReg, indexType, index) ::= <<
+<exprCode; separator="\n">
+<destReg> = getelementptr <destType>, <ptrType> <ptrReg>, <indexType> <index>
+>>
+
 arrayMultiLevelIndexing(indexing) ::= <<
 <indexing; separator="\n">
 >>
@@ -272,4 +277,10 @@ callPrintf(exprCode, tmpReg, formatStringSize, formatStringName, valueType, valu
 <exprCode>
 <tmpReg> = getelementptr [<formatStringSize> x i8], [<formatStringSize> x i8]* <formatStringName>, i32 0, i32 0
 call i32 (i8*, ...) @printf(i8* <tmpReg>, <valueType> <value>)
+>>
+
+scanf(exprCode, tmpReg, formatStringSize, formatStringName, ptrType, ptr) ::= <<
+<exprCode; separator="\n">
+<tmpReg> = getelementptr [<formatStringSize> x i8], [<formatStringSize> x i8]* <formatStringName>, i32 0, i32 0
+call i32 (i8*, ...) @scanf(i8* <tmpReg>, <ptrType> <ptr>)
 >>

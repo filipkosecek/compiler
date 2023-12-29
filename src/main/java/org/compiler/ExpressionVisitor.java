@@ -66,7 +66,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
      * Return code and Expression structure which corresponds
      * to array access.
      */
-    private Expression arrayAccess(Variable var, List<Expression> expressionList, int n) {
+    public Expression arrayAccess(Variable var, List<Expression> expressionList, int n) {
         String destReg = var.getLlName();
         ST multiLevelIndexing = globalContext.templateGroup.getInstanceOf("arrayMultiLevelIndexing");
         for (int i = 0; i < n; ++i) {

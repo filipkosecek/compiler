@@ -5,6 +5,7 @@ import org.stringtemplate.v4.ST;
 
 import javax.swing.plaf.nimbus.State;
 import java.util.ArrayList;
+import java.util.List;
 
 public class StatementVisitor extends cssBaseVisitor<Statement> {
     private static StatementVisitor instance = null;
@@ -272,5 +273,86 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         printfTemplate.add("valueType", globalContext.llPointer(value.type(), value.dimensionCount()));
         printfTemplate.add("value", value.returnRegister());
         return new Statement(null, printfTemplate.render());
+    }
+
+    public Expression getLowestLevelPointer(Variable var, List<Expression> expressionList) {
+        int n = expressionList.size();
+        if (var.getDimensionCount() == 0)
+            return new Expression("", var.getLlName(), var.getType(), 1);
+
+        if (n < var.getDimensionCount())
+            return ExpressionVisitor.getInstance(globalContext).arrayAccess(var, expressionList, n);
+
+        /* arrays with access*/
+        ST arrayGetPtr = globalContext.templateGroup.getInstanceOf("arrayGetPtr");
+
+        Expression arrayAccess = ExpressionVisitor.getInstance(globalContext).arrayAccess(var,
+                expressionList, expressionList.size() - 1);
+        Expression lastLevelIndex = expressionList.getLast();
+
+        arrayGetPtr.add("destType",
+                globalContext.llPointer(var.getType(), var.getDimensionCount() - (n - 1)));
+        String destReg = globalContext.getNewReg();
+        arrayGetPtr.add("destReg", destReg);
+        arrayGetPtr.add("ptrType",
+                globalContext.llPointer(var.getType(), var.getDimensionCount() - (n - 1)));
+        arrayGetPtr.add("ptrReg", arrayAccess.returnRegister());
+        arrayGetPtr.add("indexType", globalContext.variableTypeToLLType(lastLevelIndex.type()));
+        arrayGetPtr.add("index", lastLevelIndex.returnRegister());
+        arrayGetPtr.add("exprCode", arrayAccess.code());
+        arrayGetPtr.add("exprCode", lastLevelIndex.code());
+
+        return new Expression(arrayGetPtr.render(), destReg, arrayAccess.type(),
+                arrayAccess.dimensionCount());
+    }
+
+    @Override
+    public Statement visitStatementInput(cssParser.StatementInputContext ctx) {
+        ST template = globalContext.templateGroup.getInstanceOf("scanf");
+        ArrayList<Expression> indices = new ArrayList<>();
+        for (int i = 0; i < ctx.expression().size(); ++i) {
+            Expression index = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression(i));
+            indices.add(index);
+            if (index.dimensionCount() != 0) {
+                throw new RuntimeException("index must be non-array");
+            }
+        }
+
+        Variable var = globalContext.getVariable(ctx.ID().getText());
+        if (var == null) {
+            throw new RuntimeException("undeclared variable");
+        }
+        Expression ptr = getLowestLevelPointer(var, indices);
+        if (ptr.dimensionCount() > 1)
+            throw new RuntimeException("wrong type for scanf");
+
+        String formatStringName;
+        switch (ptr.type()) {
+            case VarType.BYTE:
+                if (var.getDimensionCount() == 1)
+                    formatStringName = "@formatStr";
+                else
+                    formatStringName = "@formatByte";
+                break;
+            case VarType.UBYTE:
+                formatStringName = "@formatUbyte";
+                break;
+            case VarType.INT:
+                formatStringName = "@formatInt";
+                break;
+            case VarType.UINT:
+                formatStringName = "@formatUint";
+                break;
+            default:
+                throw new RuntimeException("this should never happen");
+        }
+
+        template.add("exprCode", ptr.code());
+        template.add("tmpReg", globalContext.getNewReg());
+        template.add("formatStringName", formatStringName);
+        template.add("formatStringSize", globalContext.globalStrings.get(formatStringName).length() + 1);
+        template.add("ptrType", globalContext.llPointer(ptr.type(), ptr.dimensionCount()));
+        template.add("ptr", ptr.returnRegister());
+        return new Statement(null, template.render());
     }
 }
