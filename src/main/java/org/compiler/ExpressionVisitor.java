@@ -81,7 +81,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (var.getPtrRegister() == null) {
             globalContext.assignNewRegister(var.getVarName(), assignValue.returnRegister());
         } else {
-            store.add("valueType", globalContext.variableTypeToLLType(assignValue.type()));
+            store.add("valueType", globalContext.llPointer(assignValue.type(), assignValue.dimensionCount()));
             store.add("value", assignValue.returnRegister());
             store.add("ptrType", globalContext.llPointer(var.type(), var.dimensionCount() + 1));
             store.add("ptr", var.getPtrRegister());
