@@ -152,10 +152,10 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         String destReg = globalContext.getNewReg();
         template.add("destReg", destReg);
         template.add("value", value.returnRegister());
-        template.add("srcType", globalContext.variableTypeToLLType(value.type()));
-        template.add("destType", globalContext.variableTypeToLLType(destinationType));
+        template.add("srcType", globalContext.llPointer(value.type(), value.dimensionCount()));
+        template.add("destType", globalContext.llPointer(destinationType, value.dimensionCount()));
         return new Expression(value.code() + "\n" + template.render(), destReg,
-                destinationType, 0);
+                destinationType, value.dimensionCount());
     }
 
     @Override
@@ -175,9 +175,15 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         /* array is type cast just as pointers are in C,
          * i.e. the underlying value is left untouched
          */
-        if (destinationDimensionCount > 0)
-            return new Expression(expression.code(), expression.returnRegister(),
-                    destinationType, expression.dimensionCount());
+        if (destinationDimensionCount > 0) {
+            String destReg = globalContext.getNewReg();
+            ST bitcast = globalContext.templateGroup.getInstanceOf("bitcast");
+            bitcast.add("destReg", destReg);
+            bitcast.add("srcType", globalContext.llPointer(expression.type(), expression.dimensionCount()));
+            bitcast.add("destType", globalContext.llPointer(destinationType, expression.dimensionCount()));
+            bitcast.add("value", expression.returnRegister());
+            return generateTypeCastExpr("bitcast", expression, destinationType);
+        }
 
         /* LLVM language does not differentiate between signed and unsigned types */
         if (

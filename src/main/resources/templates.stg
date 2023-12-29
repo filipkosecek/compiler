@@ -91,6 +91,10 @@ functionCall(destReg, returnValue, returnType, id, argList, computeParameters) :
 >>
 
 /* same signature begin */
+bitcast(destReg, srcType, value, destType) ::= <<
+<destReg> = bitcast <srcType> <value> to <destType>
+>>
+
 zeroExtend(destReg, srcType, value, destType) ::= <<
 <destReg> = zext <srcType> <value> to <destType>
 >>
