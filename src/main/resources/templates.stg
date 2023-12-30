@@ -323,7 +323,7 @@ br label %<subLoopLabel>
 >>
 
 allocLoop(begLoopLabel, loopHeaderLabel, bodyLabel, addSubLoop, subLoop, subLoopLabel,
-iType, i, allocPtrType, parentPtrType, parentPtr, endLabel,
+iType, i, allocPtrType, parentPtrType, parentPtr, endLabel, incLabel,
 cmp, reg1, reg2, reg4, reg5, currentPtrType,
 allocAmountParentType, allocAmountParentReg, allocAmountCurrentType, allocAmountCurrentReg) ::= <<
 <begLoopLabel>:
@@ -331,16 +331,18 @@ store <allocAmountParentType> 0, <iType> <i>
 br label %<loopHeaderLabel>
 <loopHeaderLabel>:
 <reg1> = load <allocAmountParentType>, <iType> <i>
-<cmp> = icmp ult <allocAmountParentType> <reg2>, <allocAmountParentReg>
+<cmp> = icmp ult <allocAmountParentType> <reg1>, <allocAmountParentReg>
 br i1 <cmp>, label %<bodyLabel>, label %<endLabel>
 <bodyLabel>:
 <reg4> = alloca <allocPtrType>, <allocAmountCurrentType> <allocAmountCurrentReg>
 <reg5> = getelementptr <currentPtrType>, <parentPtrType> <parentPtr>, <allocAmountParentType> <reg1>
 store <currentPtrType> <reg4>, <parentPtrType> <reg5>
 <if(addSubLoop)>
-br label %<subLoopLabel>:
+br label %<subLoopLabel>
 <subLoop>
+<else>br label %<incLabel>
 <endif>
+<incLabel>:
 <reg2> = add <allocAmountParentType> <reg1>, 1
 store <allocAmountParentType> <reg2>, <iType> <i>
 br label %<loopHeaderLabel>

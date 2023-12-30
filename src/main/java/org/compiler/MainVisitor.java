@@ -135,11 +135,12 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 	private Pair<String, String> generateAllocLoops(ArrayList<Expression> sizes,
 													  ArrayList<String> iterationVars,
-									  				String previousHeaderLabel,
+									  				String previousIncLabel,
 													String previousAllocReg,
 													int index,
 													VarType type) {
 		int level = sizes.size() - index;
+		String incLabel = globalContext.genNewLabel();
 		String begLoopLabel = globalContext.genNewLabel();
 		String loopHeaderLabel = globalContext.genNewLabel();
 		String reg4 = globalContext.getNewReg();
@@ -153,7 +154,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		template.add("reg1", globalContext.getNewReg());
 		template.add("reg2", globalContext.getNewReg());
 		template.add("bodyLabel", globalContext.genNewLabel());
-		template.add("endLabel", previousHeaderLabel);
+		template.add("endLabel", previousIncLabel);
 		template.add("reg4", reg4);
 		template.add("allocPtrType", globalContext.llPointer(type, level - 1));
 		template.add("allocAmountCurrentType", globalContext.variableTypeToLLType(sizes.get(index).type()));
@@ -163,11 +164,12 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		template.add("begLoopLabel", begLoopLabel);
 		template.add("reg5", globalContext.getNewReg());
 		template.add("currentPtrType", globalContext.llPointer(type, level));
+		template.add("incLabel", incLabel);
 
 		if (level > 1) {
 			template.add("addSubLoop", true);
 			Pair<String, String> p = generateAllocLoops(sizes, iterationVars,
-					loopHeaderLabel, reg4, index + 1, type);
+					incLabel, reg4, index + 1, type);
 			template.add("subLoop", p.p1);
 			template.add("subLoopLabel", p.p2);
 		}
