@@ -308,12 +308,12 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         template.add("tmpReg", globalContext.getNewReg());
         template.add("formatStringName", formatStringName);
         template.add("formatStringSize", globalContext.globalStrings.get(formatStringName).length() + 1);
-        if (var.getPtrRegister() != null) {
-            template.add("ptrType", globalContext.llPointer(var.type(), var.dimensionCount() + 1));
-            template.add("ptr", var.getPtrRegister());
-        } else {
+        if (var.getPtrRegister() == null || var.dimensionCount() > 0) {
             template.add("ptrType", globalContext.llPointer(var.type(), var.dimensionCount()));
             template.add("ptr", var.returnRegister());
+        } else {
+            template.add("ptrType", globalContext.llPointer(var.type(), var.dimensionCount() + 1));
+            template.add("ptr", var.getPtrRegister());
         }
         return new Statement(null, template.render());
     }
