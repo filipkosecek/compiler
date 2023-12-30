@@ -21,12 +21,13 @@ public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression
         this.globalContext = globalContext;
     }
 
-    private boolean checkVariable(Variable variable, int expressionDimensions) {
-        if (variable == null)
+    private void checkVariable(Variable variable, int expressionDimensions) {
+        if (variable == null) {
             globalContext.handleFatalError("undeclared variable");
+            throw new RuntimeException("bad");
+        }
         if (variable.getDimensionCount() < expressionDimensions)
             globalContext.handleFatalError("Too much indexing.");
-        return true;
     }
 
     /**

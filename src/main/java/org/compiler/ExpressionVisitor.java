@@ -105,8 +105,10 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     @Override
     public Expression visitFuncCallExpr(cssParser.FuncCallExprContext ctx) {
         Function function = globalContext.getFunction(ctx.ID().getText());
-        if (function == null)
+        if (function == null) {
             globalContext.handleFatalError("function declaration must precede its first use");
+            throw new RuntimeException("bad");
+        }
 
         String argList = "";
         StringBuilder code = new StringBuilder();

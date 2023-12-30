@@ -9,10 +9,7 @@ import java.util.List;
 
 public class MainVisitor extends cssBaseVisitor<String> {
 	/* these three integer values are used in allocateArrayLevels */
-	private int sizeRegisterCounter = 1;
-	private int tmpRegisterCounter = 1;
 	private int iRegisterCounter = 1;
-	private int allocLoopLabelCounter = 1;
 
 	private static MainVisitor instance = null;
 	public static MainVisitor getInstance(GlobalContext globalContext) {
