@@ -229,11 +229,27 @@ public class MainVisitor extends cssBaseVisitor<String> {
 
 		Variable var = new Variable(globalContext.getNewReg(), type, ctx.declTypeArray().size(),
 						false);
+		Expression assignValue = null;
+		if (ctx.expression() != null)
+			assignValue = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
+
 		String code;
-		if (!containsSome)
-			code = "";
-		else
+		if (!containsSome) {
+			if (assignValue != null) {
+				code = assignValue.code();
+				var.setLlName(assignValue.returnRegister());
+				if (assignValue.type() != var.getType() || assignValue.dimensionCount() != var.getDimensionCount()) {
+					throw new RuntimeException("Types don't match.");
+				}
+			} else {
+				code = "";
+			}
+		} else {
 			code = allocateArrayLevels(var, sizes);
+			if (assignValue != null) {
+				throw new RuntimeException("Cannot assign during variable length array allocation.");
+			}
+		}
 		globalContext.addToLastScope(ctx.ID().getText(), var);
 		return code;
 	}
