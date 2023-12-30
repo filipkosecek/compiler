@@ -201,7 +201,7 @@ logicalOr(destReg, type, value1, value2, tmp1, tmp2, tmp3, expressionCode1, expr
 <expressionCode2>
 <tmp1> = icmp ne <type> 0, <value1>
 <tmp2> = icmp ne <type> 0, <value2>
-<tmp3> = or i1 <tmp2>, <tmp2>
+<tmp3> = or i1 <tmp1>, <tmp2>
 <destReg> = zext i1 <tmp3> to <type>
 >>
 /* same signature end */
