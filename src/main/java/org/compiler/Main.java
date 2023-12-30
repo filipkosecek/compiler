@@ -15,7 +15,7 @@ public class Main {
 		globalVars.globalStrings.put("@formatInt", "%d");
 		globalVars.globalStrings.put("@formatUint", "%u");
 		globalVars.globalStrings.put("@formatStr", "%s");
-		//globalVars.globalStrings.put("@formatEndLine", "\n");
+		globalVars.globalStrings.put("@formatEndLine", "\n");
 		CharStream in = null;
 		if (args.length != 1)
 			globalVars.handleFileErrors();

@@ -234,6 +234,16 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
 
     @Override
     public Statement visitStatementOutput(cssParser.StatementOutputContext ctx) {
+        if (ctx.expression() == null) {
+            String formatStringName = "@formatEndLine";
+            String formatString = globalContext.globalStrings.get(formatStringName);
+            ST template = globalContext.templateGroup.getInstanceOf("callPrintfEndline");
+            template.add("tmpReg", globalContext.getNewReg());
+            template.add("formatStringSize", formatString.length() + 1);
+            template.add("formatStringName", formatStringName);
+            return new Statement(null, template.render());
+        }
+
         Expression value = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (value.dimensionCount() > 0 && value.type() != VarType.BYTE) {
             globalContext.handleFatalError("Only strings and simple expressions can be printed.");

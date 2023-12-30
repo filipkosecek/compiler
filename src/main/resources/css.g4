@@ -77,7 +77,7 @@ statement
 	| BREAK SEMICOLON                                           #statementBreak
 	| RETURN expression SEMICOLON                               #statementReturn
 	| INPUT variable SEMICOLON                                  #statementInput
-	| OUTPUT expression SEMICOLON                               #statementOutput
+	| OUTPUT expression? SEMICOLON                               #statementOutput
 ;
 
 while

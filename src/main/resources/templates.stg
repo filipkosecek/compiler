@@ -292,6 +292,11 @@ callPrintf(exprCode, tmpReg, formatStringSize, formatStringName, valueType, valu
 call i32 (i8*, ...) @printf(i8* <tmpReg>, <valueType> <value>)
 >>
 
+callPrintfEndline(tmpReg, formatStringSize, formatStringName) ::= <<
+<tmpReg> = getelementptr [<formatStringSize> x i8], [<formatStringSize> x i8]* <formatStringName>, i32 0, i32 0
+call i32 (i8*, ...) @printf(i8* <tmpReg>)
+>>
+
 scanf(exprCode, tmpReg, formatStringSize, formatStringName, ptrType, ptr) ::= <<
 <exprCode; separator="\n">
 <tmpReg> = getelementptr [<formatStringSize> x i8], [<formatStringSize> x i8]* <formatStringName>, i32 0, i32 0
