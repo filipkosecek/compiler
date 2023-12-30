@@ -75,7 +75,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
 
 		for (Variable arg : argList) {
-			if (arg.isReference() || arg.getDimensionCount() > 0)
+			if (arg.getDimensionCount() > 0)
 				continue;
 			ST paramInit = globalContext.templateGroup.getInstanceOf("paramInit");
 			String destReg = globalContext.getNewReg();
@@ -227,8 +227,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			throw new RuntimeException("Array declaration must either have all levels empty or full.");
 		}
 
-		Variable var = new Variable(globalContext.getNewReg(), type, ctx.declTypeArray().size(),
-						false);
+		Variable var = new Variable(globalContext.getNewReg(), type, ctx.declTypeArray().size());
 		Expression assignValue = null;
 		if (ctx.expression() != null)
 			assignValue = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
@@ -282,7 +281,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			template.add("value", assignValue.returnRegister());
 			template.add("ptrType", globalContext.llPointer(type, 1));
 		}
-		var = new Variable(register, type, 0, false);
+		var = new Variable(register, type, 0);
 		globalContext.addToLastScope(ctx.ID().getText(), var);
 		return template.render();
 	}

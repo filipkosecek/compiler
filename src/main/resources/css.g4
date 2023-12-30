@@ -23,8 +23,7 @@ declAssign
 ;
 
 funcArg
-	: type ID (LEFT_SQUARE RIGHT_SQUARE)*	#funcArgClassic
-	| type AMPERSAND ID			            #funcArgReference
+	: type ID (LEFT_SQUARE RIGHT_SQUARE)*
 ;
 
 function

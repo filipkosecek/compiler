@@ -25,7 +25,7 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
             globalContext.handleFatalError("A function argument cannot be of void type.");
     }
 
-    private int getDimensionCount(cssParser.FuncArgClassicContext ctx) {
+    private int getDimensionCount(cssParser.FuncArgContext ctx) {
         return ctx.LEFT_SQUARE().size();
     }
 
@@ -33,24 +33,11 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
      * Return type of argument and put it to the last scope.
      */
     @Override
-    public Variable visitFuncArgClassic(cssParser.FuncArgClassicContext ctx) {
+    public Variable visitFuncArg(cssParser.FuncArgContext ctx) {
         VarType type = TypeVisitor.getInstance().visit(ctx.type());
         checkVoidType(type);
         Variable var = new Variable(globalContext.getNewReg(),
-                type, getDimensionCount(ctx), false);
-        globalContext.addToLastScope(ctx.ID().getText(), var);
-        return var;
-    }
-
-    /**
-     * Process reference function argument.
-     */
-    @Override
-    public Variable visitFuncArgReference(cssParser.FuncArgReferenceContext ctx) {
-        VarType type = TypeVisitor.getInstance().visit(ctx.type());
-        checkVoidType(type);
-        Variable var = new Variable(globalContext.getNewReg(),
-                type, 0, true);
+                type, getDimensionCount(ctx));
         globalContext.addToLastScope(ctx.ID().getText(), var);
         return var;
     }

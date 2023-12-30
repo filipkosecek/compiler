@@ -1,6 +1,5 @@
 lexer grammar cssLex;
 
-AMPERSAND: '&' ;
 TYPE_BYTE: 'byte' ;
 TYPE_UBYTE: 'ubyte' ;
 TYPE_INT: 'int' ;

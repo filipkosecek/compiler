@@ -33,8 +33,6 @@ public class FunctionArgumentListVisitor extends cssBaseVisitor<Pair<List<Variab
             for (int j = 0; j < arg.getDimensionCount(); ++j) {
                 sb.append('*');
             }
-            if (arg.isReference())
-                sb.append('*');
             sb.append(" ");
             sb.append(arg.getLlName());
         }

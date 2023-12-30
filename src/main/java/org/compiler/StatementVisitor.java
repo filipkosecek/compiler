@@ -3,9 +3,7 @@ package org.compiler;
 import org.gen.*;
 import org.stringtemplate.v4.ST;
 
-import javax.swing.plaf.nimbus.State;
 import java.util.ArrayList;
-import java.util.List;
 
 public class StatementVisitor extends cssBaseVisitor<Statement> {
     private static StatementVisitor instance = null;
