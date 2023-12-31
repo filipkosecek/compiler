@@ -45,7 +45,7 @@ fragment ONELINE_COMMENT
 ;
 
 fragment COMMENT
-: '/*' ('*' ~'/' | ~'*' .)* '*/'
+: '/*' .*? '*/'
 ;
 
 ID
