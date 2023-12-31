@@ -250,6 +250,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	public String visitDeclAssign(cssParser.DeclAssignContext ctx) {
 		Variable var = globalContext.getVariable(ctx.ID().getText());
 		VarType type = globalContext.getCurrentDeclarationType();
+		if (type == VarType.VOID)
+			globalContext.handleFatalError("cannot declare a variable of type void");
+
 		if (var != null) {
 			globalContext.handleFatalError("variable declared twice");
 			throw new RuntimeException("gjhj");

@@ -216,6 +216,8 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     @Override
     public Expression visitUnOpExpr(cssParser.UnOpExprContext ctx) {
         Expression expression = visit(ctx.expression());
+        if (expression.type() == VarType.VOID)
+            globalContext.handleFatalError("cannot apply unary operations on void type");
         if (expression.dimensionCount() != 0)
             globalContext.handleFatalError("Unary operators can only be applied on non-array expressions.");
 
