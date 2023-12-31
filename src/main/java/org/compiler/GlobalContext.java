@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 public class GlobalContext {
-    public final STGroup templateGroup = new STGroupFile("/home/filipkosecek/IdeaProjects/untitled/src/main/resources/templates.stg");
+    public final STGroup templateGroup = new STGroupFile("src/main/resources/templates.stg");
     /* scope information */
     private final LinkedList<ScopeInfo> scopeStack = new LinkedList<>();
     private final HashMap<String, Function> functions = new HashMap<>();

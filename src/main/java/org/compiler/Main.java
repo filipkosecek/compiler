@@ -23,7 +23,7 @@ public class Main {
 		cssParser parser = new cssParser(tokens);
 		ParseTree tree = parser.program();
 		try {
-			FileWriter out = new FileWriter("/home/filipkosecek/IdeaProjects/untitled/test/test.ll");
+			FileWriter out = new FileWriter("test/test.ll");
 			out.write(MainVisitor.getInstance(globalVars).visit(tree));
 			out.close();
 		} catch (IOException e) {
