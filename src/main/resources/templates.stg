@@ -40,6 +40,8 @@ init:
 	<code>
 <if(voidFunction)>
     ret void
+<else>
+    ret <returnType> 0
 <endif>
 }
 >>
