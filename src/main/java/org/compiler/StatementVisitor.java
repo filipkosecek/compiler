@@ -77,7 +77,6 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("only simple expression can go to while");
-            throw new RuntimeException("bad");
         }
         Statement codeBlock = visit(ctx.codeBlock());
         ST whileTemplate = globalContext.templateGroup.getInstanceOf("while");
@@ -104,12 +103,11 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         Function currentFunction = globalContext.currentFunction;
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (expression.dimensionCount() != 0) {
-            globalContext.handleFatalError("Only primitive values can be returned from a function.");
-            throw new RuntimeException("bad");
+            globalContext.handleFatalError("only primitive values can be returned" +
+                    " from a function, i.e. non-array");
         }
         if (expression.type() != currentFunction.getReturnType()) {
-            globalContext.handleFatalError("Return value type does not match.");
-            throw new RuntimeException("bad");
+            globalContext.handleFatalError("return value type does not match");
         }
 
         ST returnTemplate = globalContext.templateGroup.getInstanceOf("return");
@@ -125,8 +123,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         ST ifTemplate = globalContext.templateGroup.getInstanceOf("if");
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (expression.dimensionCount() != 0) {
-            globalContext.handleFatalError("Only non-array expressions can be in if.");
-            throw new RuntimeException("bad");
+            globalContext.handleFatalError("if header can only contain a primitive non-array expression");
         }
         Statement codeBlock = visit(ctx.codeBlock());
         ifTemplate.add("exprCode", expression.code());
@@ -174,8 +171,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         Statement body = visit(ctx.codeBlock());
         if (expression.dimensionCount() != 0) {
-            globalContext.handleFatalError("Only non-array expressions can be in if.");
-            throw new RuntimeException("bad");
+            globalContext.handleFatalError("if header can only contain a primitive non-array expression");
         }
 
         ST elif = globalContext.templateGroup.getInstanceOf("elif");
@@ -244,8 +240,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
 
         Expression value = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         if (value.dimensionCount() > 0 && value.type() != VarType.BYTE) {
-            globalContext.handleFatalError("Only strings and simple expressions can be printed.");
-            throw new RuntimeException("bad");
+            globalContext.handleFatalError("only strings and primitive non-array " +
+                    "expressions can be printed");
+            throw new RuntimeException("this never executes, just to suppress warnings");
         }
 
         String formatStringName;
@@ -259,8 +256,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
                 } else if (value.dimensionCount() == 1) {
                     formatStringName = "@formatStr";
                 } else {
-                    globalContext.handleFatalError("Only strings and simple expressions can be printed.");
-                    throw new RuntimeException("bad");
+                    globalContext.handleFatalError("only strings and primitive non-array " +
+                            "expressions can be printed.");
+                    throw new RuntimeException("this never executes, just to suppress warnings");
                 }
                 break;
             case VarType.UBYTE:
@@ -272,6 +270,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             case VarType.UINT:
                 formatStringName = "@formatUint";
                 break;
+            case VarType.VOID:
+                globalContext.handleFatalError("values of type void cannot be printed");
+                throw new RuntimeException("this never executes, just to suppress warnings");
             default:
                 throw new RuntimeException("This case should never happen.");
         }
@@ -288,8 +289,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         ST template = globalContext.templateGroup.getInstanceOf("scanf");
 
         VariableExpression var = VariableExpressionVisitor.getInstance(globalContext).visit(ctx.variable());
-        if (var.dimensionCount() > 1)
-            throw new RuntimeException("wrong type for scanf");
+        if (var.dimensionCount() > 1) {
+            globalContext.handleFatalError("only strings and primitive values can be read from stdin");
+            throw new RuntimeException("this never executes, just to suppress warnings");
+        }
 
         String formatStringName;
         switch (var.type()) {
@@ -308,6 +311,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             case VarType.UINT:
                 formatStringName = "@formatUint";
                 break;
+            case VarType.VOID:
+                globalContext.handleFatalError("cannot load a value to a void type");
+                throw new RuntimeException("this never executes, just to suppress warnings");
             default:
                 throw new RuntimeException("this should never happen");
         }

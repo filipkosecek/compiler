@@ -21,13 +21,13 @@ public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression
         this.globalContext = globalContext;
     }
 
-    private void checkVariable(Variable variable, int expressionDimensions) {
+    private void checkVariable(Variable variable, int expressionDimensions, String name) {
         if (variable == null) {
-            globalContext.handleFatalError("undeclared variable");
-            throw new RuntimeException("bad");
+            globalContext.handleFatalError("undeclared variable '" + name + "'");
+            throw new RuntimeException("this never executes, just to suppress warnings");
         }
         if (variable.getDimensionCount() < expressionDimensions)
-            globalContext.handleFatalError("Too much indexing.");
+            globalContext.handleFatalError("too many array indices for '" + name + "'");
     }
 
     /**
@@ -87,7 +87,7 @@ public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression
     @Override
     public VariableExpression visitVariable(cssParser.VariableContext ctx) {
         Variable var = globalContext.getVariable(ctx.ID().getText());
-        checkVariable(var, ctx.expression().size());
+        checkVariable(var, ctx.expression().size(), ctx.ID().getText());
 
         if (var.getDimensionCount() == 0)
             return dereferenceLocalVar(var, ctx.ID().getText());
@@ -96,7 +96,7 @@ public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression
         for (int i = 0; i < ctx.expression().size(); ++i) {
             Expression subexpression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression(i));
             if (subexpression.dimensionCount() != 0)
-                globalContext.handleFatalError("Index to an array must not be an array.");
+                globalContext.handleFatalError("index to an array must not be an array");
             subexpressions.add(subexpression);
         }
 

@@ -72,10 +72,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         Expression assignValue = visit(ctx.expression());
         VariableExpression var = VariableExpressionVisitor.getInstance(globalContext).visit(ctx.variable());
         if (var.dimensionCount() != assignValue.dimensionCount())
-            globalContext.handleFatalError("assign type don't match");
+            globalContext.handleFatalError("dimension counts of the value " +
+                    "and the variable to be assigned don't match");
 
         if (var.type() != assignValue.type())
-            globalContext.handleFatalError("types don't match");
+            globalContext.handleFatalError("types of the value and the variable " +
+                    "to be assigned don't match");
 
         ST store = globalContext.templateGroup.getInstanceOf("store");
         if (var.getPtrRegister() == null) {
@@ -106,8 +108,9 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     public Expression visitFuncCallExpr(cssParser.FuncCallExprContext ctx) {
         Function function = globalContext.getFunction(ctx.ID().getText());
         if (function == null) {
-            globalContext.handleFatalError("function declaration must precede its first use");
-            throw new RuntimeException("bad");
+            globalContext.handleFatalError("declaration of function '" + ctx.ID().getText() +
+                    "' must precede its first use");
+            throw new RuntimeException("this never executes, just to suppress warnings");
         }
 
         String argList = "";
@@ -117,14 +120,16 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             List<Expression> parameters = FuncParamListVisitor.getInstance(globalContext).visit(ctx.funcParamList());
             List<Variable> signature = function.getArguments();
             if (parameters.size() != function.getArgumentCount())
-                globalContext.handleFatalError("Function argument count does not match.");
+                globalContext.handleFatalError("function argument count does not match signature of function '" +
+                        ctx.ID().getText() + "'");
 
             for (int i = 0; i < parameters.size(); ++i) {
                 Variable signatureVar = signature.get(i);
                 Expression parameter = parameters.get(i);
                 if ((parameter.type() != signatureVar.getType()) ||
                         parameter.dimensionCount() != signatureVar.getDimensionCount())
-                    globalContext.handleFatalError("Signature does not match.");
+                    globalContext.handleFatalError("argument list does not match signature of function '" +
+                            ctx.ID().getText() + "'");
                 String parameterType = globalContext.llPointer(parameter.type(), parameter.dimensionCount());
                 argListTemplate.add("arg", parameterType + " " + parameter.returnRegister());
                 code.append(parameter.code());
@@ -167,9 +172,9 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         VarType sourceType = expression.type();
         int destinationDimensionCount = ctx.LEFT_SQUARE().size();
         if (destinationDimensionCount != expression.dimensionCount())
-            globalContext.handleFatalError("cannot type cast to another level");
+            globalContext.handleFatalError("expression cannot be cast to a different dimension");
         if (sourceType == VarType.VOID || destinationType == VarType.VOID)
-            globalContext.handleFatalError("expressions cannot be type cast to void");
+            globalContext.handleFatalError("expressions cannot be cast to void type");
 
         if (sourceType == destinationType)
             return expression;
@@ -219,7 +224,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (expression.type() == VarType.VOID)
             globalContext.handleFatalError("cannot apply unary operations on void type");
         if (expression.dimensionCount() != 0)
-            globalContext.handleFatalError("Unary operators can only be applied on non-array expressions.");
+            globalContext.handleFatalError("unary operators can only be applied on non-array expressions.");
 
         String destReg = globalContext.getNewReg();
         switch (ctx.unOp.getType()) {
@@ -278,10 +283,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     public Expression visitBinOpExpr(cssParser.BinOpExprContext ctx) {
         Expression first = visit(ctx.expression(0));
         Expression second = visit(ctx.expression(1));
+        if (first.type() == VarType.VOID || second.type() == VarType.VOID)
+            globalContext.handleFatalError("binary operation operand cannot be of type void");
         if ((first.type() != second.type()) ||
                 first.dimensionCount() != second.dimensionCount() ||
                 first.dimensionCount() != 0)
-            globalContext.handleFatalError("type mismatch");
+            globalContext.handleFatalError("type mismatch on binary operation");
 
         boolean isSigned = first.type() == VarType.BYTE || first.type() == VarType.INT;
         String expressionCode = first.code() + "\n" + second.code();
@@ -350,7 +357,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             return null;
         Expression size =  visit(ctx.expression());
         if (size.dimensionCount() != 0) {
-            throw new RuntimeException("Index must be non-array.");
+            globalContext.handleFatalError("size of an array dimension must not be an array");
         }
         return size;
     }

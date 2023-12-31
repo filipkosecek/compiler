@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainVisitor extends cssBaseVisitor<String> {
-	/* these three integer values are used in allocateArrayLevels */
+	/* this integer value are used in allocateArrayLevels */
 	private int iRegisterCounter = 1;
 
 	private static MainVisitor instance = null;
@@ -66,8 +66,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	@Override
 	public String visitFunction(cssParser.FunctionContext ctx) {
 		if (globalContext.containsFunction(ctx.ID().getText()))
-			globalContext.handleFatalError("Function already declared.");
+			globalContext.handleFatalError("function already declared");
 
+		globalContext.currentFunctionName = ctx.ID().getText();
 		globalContext.addNewScope();
 		VarType returnType = TypeVisitor.getInstance().visit(ctx.type());
 
@@ -217,7 +218,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			}
 		}
 		if (containsNull && containsSome) {
-			throw new RuntimeException("Array declaration must either have all levels empty or full.");
+			globalContext.handleFatalError("when declaring an array, either" +
+					"every dimension must have a specified size or none");
 		}
 
 		Variable var = new Variable(globalContext.getNewReg(), type, ctx.declTypeArray().size());
@@ -231,7 +233,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 				code = assignValue.code();
 				var.setLlName(assignValue.returnRegister());
 				if (assignValue.type() != var.getType() || assignValue.dimensionCount() != var.getDimensionCount()) {
-					throw new RuntimeException("Types don't match.");
+					globalContext.handleFatalError("type mismatch at declaration of '" +
+							ctx.ID().getText() +
+							"'");
 				}
 			} else {
 				code = "";
@@ -239,7 +243,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		} else {
 			code = allocateArrayLevels(var, sizes);
 			if (assignValue != null) {
-				throw new RuntimeException("Cannot assign during variable length array allocation.");
+				globalContext.handleFatalError("cannot assign to an array with specified sizes at declaration");
 			}
 		}
 		globalContext.addToLastScope(ctx.ID().getText(), var);
@@ -251,11 +255,14 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		Variable var = globalContext.getVariable(ctx.ID().getText());
 		VarType type = globalContext.getCurrentDeclarationType();
 		if (type == VarType.VOID)
-			globalContext.handleFatalError("cannot declare a variable of type void");
+			globalContext.handleFatalError("cannot declare a variable '" +
+					ctx.ID().getText() +
+					"' of type void");
 
 		if (var != null) {
-			globalContext.handleFatalError("variable declared twice");
-			throw new RuntimeException("gjhj");
+			globalContext.handleFatalError("variable '" +
+					ctx.ID().getText() +
+					"' declared more than once");
 		}
 
 		if (!ctx.declTypeArray().isEmpty())
@@ -269,8 +276,9 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		if (ctx.expression() != null) {
 			Expression assignValue = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
 			if (assignValue.type() != type) {
-				globalContext.handleFatalError("types don't match");
-				throw new RuntimeException("ghji");
+				globalContext.handleFatalError("type mismatch at declaration of '" +
+						ctx.ID().getText() +
+						"'");
 			}
 			template.add("init", true);
 			template.add("expressionCode", assignValue.code());

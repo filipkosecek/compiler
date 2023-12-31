@@ -19,6 +19,7 @@ public class GlobalContext {
     /* This variable is for variale declaration. */
     private VarType currentDeclarationType;
     public Function currentFunction = null;
+    public String currentFunctionName = null;
 
     public VarType getCurrentDeclarationType() {
         return currentDeclarationType;
@@ -78,7 +79,7 @@ public class GlobalContext {
         if (isVariableDeclared(id))
             handleFatalError("variable name collision");
         if (scopeStack.isEmpty())
-            throw new RuntimeException("bad");
+            throw new RuntimeException("this shouldn't happen");
         scopeStack.peek().addVariable(id, var);
     }
 
@@ -89,7 +90,7 @@ public class GlobalContext {
     public void assignNewRegister(String id, String newRegister) {
         Variable var = getVariable(id);
         if (var == null)
-            throw new RuntimeException("shit happens");
+            throw new RuntimeException("this shouldn't happen");
 
         var.setLlName(newRegister);
     }
@@ -110,7 +111,7 @@ public class GlobalContext {
     }
 
     public void handleFatalError(String message) {
-        System.err.println("fatal error: " + message);
+        System.err.println("fatal error: in function " + currentFunctionName + ": " + message);
         System.exit(2);
     }
 

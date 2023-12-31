@@ -22,7 +22,7 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
 
     private void checkVoidType(VarType type) {
         if (type == VarType.VOID)
-            globalContext.handleFatalError("A function argument cannot be of void type.");
+            globalContext.handleFatalError("a function argument cannot be of void type.");
     }
 
     private int getDimensionCount(cssParser.FuncArgContext ctx) {
@@ -36,6 +36,9 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     public Variable visitFuncArg(cssParser.FuncArgContext ctx) {
         VarType type = TypeVisitor.getInstance().visit(ctx.type());
         checkVoidType(type);
+        if (globalContext.getVariable(ctx.ID().getText()) != null)
+            globalContext.handleFatalError("variable '" + ctx.ID().getText() +
+                    "' already declared");
         Variable var = new Variable(globalContext.getNewReg(),
                 type, getDimensionCount(ctx));
         globalContext.addToLastScope(ctx.ID().getText(), var);
