@@ -10,12 +10,6 @@ import java.io.IOException;
 public class Main {
 	public static void main(String[] args) {
 		GlobalContext globalVars = new GlobalContext();
-		globalVars.globalStrings.put("@formatByte", "%c");
-		globalVars.globalStrings.put("@formatUbyte", "%u");
-		globalVars.globalStrings.put("@formatInt", "%d");
-		globalVars.globalStrings.put("@formatUint", "%u");
-		globalVars.globalStrings.put("@formatStr", "%s");
-		globalVars.globalStrings.put("@formatEndLine", "\n");
 		CharStream in = null;
 		if (args.length != 1)
 			globalVars.handleFileErrors();

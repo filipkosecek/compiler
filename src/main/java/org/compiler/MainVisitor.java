@@ -27,10 +27,25 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	}
 
 	/**
+	 * Add format strings to the map of global strings.
+	 * String names must match with those
+	 * used in functions handling input and output.
+	 */
+	private void addFormatStrings() {
+		globalContext.globalStrings.put("@formatByte", "%c");
+		globalContext.globalStrings.put("@formatUbyte", "%u");
+		globalContext.globalStrings.put("@formatInt", "%d");
+		globalContext.globalStrings.put("@formatUint", "%u");
+		globalContext.globalStrings.put("@formatStr", "%s");
+		globalContext.globalStrings.put("@formatEndLine", "\n");
+	}
+
+	/**
 	 * Visit initial non-terminal.
 	 */
 	@Override
 	public String visitProgram(cssParser.ProgramContext ctx) {
+		addFormatStrings();
 		ST programBodyTemplate = globalContext.templateGroup.getInstanceOf("program");
 		for (int i = 0; i < ctx.function().size(); ++i)
 			programBodyTemplate.add("programBody", visit(ctx.function(i)));
