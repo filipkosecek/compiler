@@ -116,27 +116,6 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return functionDef.render();
 	}
 
-	/**
-	 * Generate code for code block.
-	 */
-	@Override
-	public String visitCodeBlock(cssParser.CodeBlockContext ctx) {
-		ST template = globalContext.templateGroup.getInstanceOf("codeBlock");
-		for (int i = 0; i < ctx.codeFragment().size(); ++i) {
-			template.add("lines", visit(ctx.codeFragment(i)));
-		}
-		return template.render();
-	}
-
-	/**
-	 * Generate code for a line of code.
-	 */
-	@Override
-	public String visitCodeFragmentExpr(cssParser.CodeFragmentExprContext ctx) {
-		Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
-		return expression.code();
-	}
-
 	@Override
 	public String visitVarDeclBlock(cssParser.VarDeclBlockContext ctx) {
 		VarType type = TypeVisitor.getInstance().visit(ctx.type());
