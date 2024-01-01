@@ -283,7 +283,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         ST template = globalContext.templateGroup.getInstanceOf("scanf");
 
         VariableExpression var = VariableExpressionVisitor.getInstance(globalContext).visit(ctx.variable());
-        if (var.dimensionCount() > 1) {
+        if (var.dimensionCount() > 0 && var.type() != VarType.BYTE) {
             globalContext.handleFatalError("only strings and primitive values can be read from stdin");
             throw new RuntimeException("this never executes, just to suppress warnings");
         }
@@ -291,10 +291,15 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         String formatStringName;
         switch (var.type()) {
             case VarType.BYTE:
-                if (var.dimensionCount() == 1)
+                if (var.dimensionCount() == 1) {
                     formatStringName = "@formatStr";
-                else
+                } else if (var.dimensionCount() == 0) {
                     formatStringName = "@formatByte";
+                } else {
+                    globalContext.handleFatalError("only strings and primitive values " +
+                            "can be read from stdin");
+                    throw new RuntimeException("this never executes, just to suppress warnings");
+                }
                 break;
             case VarType.INT:
                 formatStringName = "@formatInt";
