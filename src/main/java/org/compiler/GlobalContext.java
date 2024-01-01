@@ -97,9 +97,7 @@ public class GlobalContext {
 
     private int idCounter = 1;
     private final Map<VarType, String> variableTypeToLLType = Map.of(VarType.BYTE, "i8",
-                                                                        VarType.UBYTE, "i8",
                                                                         VarType.INT, "i32",
-                                                                        VarType.UINT, "i32",
                                                                         VarType.VOID, "void"
                                                                         );
 

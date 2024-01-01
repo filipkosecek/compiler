@@ -129,10 +129,6 @@ signedModulo(destReg, type, value1, value2, tmpReg) ::= <<
 <destReg> = srem <type> <value1>, <value2>
 >>
 
-unsignedModulo(destReg, type, value1, value2, tmpReg) ::= <<
-<destReg> = urem <type> <value1>, <value2>
->>
-
 cmpEQ(destReg, type, value1, value2, tmpReg) ::= <<
 <tmpReg> = icmp eq <type> <value1>, <value2>
 <destReg> = zext i1 <tmpReg> to <type>
@@ -140,26 +136,6 @@ cmpEQ(destReg, type, value1, value2, tmpReg) ::= <<
 
 cmpNE(destReg, type, value1, value2, tmpReg) ::= <<
 <tmpReg> = icmp ne <type> <value1>, <value2>
-<destReg> = zext i1 <tmpReg> to <type>
->>
-
-cmpUGT(destReg, type, value1, value2, tmpReg) ::= <<
-<tmpReg> = icmp ugt <type> <value1>, <value2>
-<destReg> = zext i1 <tmpReg> to <type>
->>
-
-cmpUGE(destReg, type, value1, value2, tmpReg) ::= <<
-<tmpReg> = icmp uge <type> <value1>, <value2>
-<destReg> = zext i1 <tmpReg> to <type>
->>
-
-cmpULT(destReg, type, value1, value2, tmpReg) ::= <<
-<tmpReg> = icmp ult <type> <value1>, <value2>
-<destReg> = zext i1 <tmpReg> to <type>
->>
-
-cmpULE(destReg, type, value1, value2, tmpReg) ::= <<
-<tmpReg> = icmp ule <type> <value1>, <value2>
 <destReg> = zext i1 <tmpReg> to <type>
 >>
 

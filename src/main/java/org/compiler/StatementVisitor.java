@@ -261,14 +261,8 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
                     throw new RuntimeException("this never executes, just to suppress warnings");
                 }
                 break;
-            case VarType.UBYTE:
-                formatStringName = "@formatUbyte";
-                break;
             case VarType.INT:
                 formatStringName = "@formatInt";
-                break;
-            case VarType.UINT:
-                formatStringName = "@formatUint";
                 break;
             case VarType.VOID:
                 globalContext.handleFatalError("values of type void cannot be printed");
@@ -302,14 +296,8 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
                 else
                     formatStringName = "@formatByte";
                 break;
-            case VarType.UBYTE:
-                formatStringName = "@formatUbyte";
-                break;
             case VarType.INT:
                 formatStringName = "@formatInt";
-                break;
-            case VarType.UINT:
-                formatStringName = "@formatUint";
                 break;
             case VarType.VOID:
                 globalContext.handleFatalError("cannot load a value to a void type");

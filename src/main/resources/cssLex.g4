@@ -1,9 +1,7 @@
 lexer grammar cssLex;
 
 TYPE_BYTE: 'byte' ;
-TYPE_UBYTE: 'ubyte' ;
 TYPE_INT: 'int' ;
-TYPE_UINT: 'uint' ;
 TYPE_VOID: 'void' ;
 BREAK: 'break' ;
 CONTINUE: 'continue' ;

@@ -7,7 +7,7 @@ program
 ;
 
 type
-    : t=(TYPE_BYTE | TYPE_UBYTE | TYPE_INT | TYPE_UINT | TYPE_VOID)
+    : t=(TYPE_BYTE | TYPE_INT | TYPE_VOID)
 ;
 
 varDeclBlock

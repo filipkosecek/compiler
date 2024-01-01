@@ -192,26 +192,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             return generateTypeCastExpr("bitcast", expression, destinationType);
         }
 
-        /* LLVM language does not differentiate between signed and unsigned types */
-        if (
-                (sourceType == VarType.BYTE && destinationType == VarType.UBYTE) ||
-                (sourceType == VarType.UBYTE && destinationType == VarType.BYTE) ||
-                (sourceType == VarType.INT && destinationType == VarType.UINT) ||
-                (sourceType == VarType.UINT && destinationType == VarType.INT)
-        )
-            return new Expression(expression.code(), expression.returnRegister(),
-                    destinationType, expression.dimensionCount());
-
         /* one extend */
         if (sourceType == VarType.BYTE)
             return generateTypeCastExpr("signExtend", expression, destinationType);
 
-        /* zero extend */
-        if (sourceType == VarType.UBYTE)
-            return generateTypeCastExpr("zeroExtend", expression, destinationType);
-
         /* truncate */
-        if (sourceType == VarType.INT || sourceType == VarType.UINT)
+        if (sourceType == VarType.INT)
             return generateTypeCastExpr("truncate", expression, destinationType);
 
         /* all cases should be covered */
@@ -290,7 +276,6 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 first.dimensionCount() != 0)
             globalContext.handleFatalError("type mismatch on binary operation");
 
-        boolean isSigned = first.type() == VarType.BYTE || first.type() == VarType.INT;
         String expressionCode = first.code() + "\n" + second.code();
         String templateName = "";
 
@@ -308,10 +293,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 templateName = "subtract";
                 break;
             case cssParser.MOD:
-                if (isSigned)
-                    templateName = "signedModulo";
-                else
-                    templateName = "unsignedModulo";
+                templateName = "signedModulo";
                 break;
             case cssParser.EQ:
                 templateName = "cmpEQ";
@@ -320,28 +302,16 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 templateName = "cmpNE";
                 break;
             case cssParser.GT:
-                if (isSigned)
-                    templateName = "cmpSGT";
-                else
-                    templateName = "cmpUGT";
+                templateName = "cmpSGT";
                 break;
             case cssParser.GTE:
-                if (isSigned)
-                    templateName = "cmpUGE";
-                else
-                    templateName = "cmpSGE";
+                templateName = "cmpSGE";
                 break;
             case cssParser.LT:
-                if (isSigned)
-                    templateName = "cmpSLT";
-                else
-                    templateName = "cmpULT";
+                templateName = "cmpSLT";
                 break;
             case cssParser.LTE:
-                if (isSigned)
-                    templateName = "cmpSLE";
-                else
-                    templateName = "cmpULE";
+                templateName = "cmpSLE";
                 break;
             case cssParser.LOGICAL_AND:
                 return getLogicalBinop(first, second, true);

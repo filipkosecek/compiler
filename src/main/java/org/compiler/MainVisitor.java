@@ -33,9 +33,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	 */
 	private void addFormatStrings() {
 		globalContext.globalStrings.put("@formatByte", "%c");
-		globalContext.globalStrings.put("@formatUbyte", "%u");
 		globalContext.globalStrings.put("@formatInt", "%d");
-		globalContext.globalStrings.put("@formatUint", "%u");
 		globalContext.globalStrings.put("@formatStr", "%s");
 		globalContext.globalStrings.put("@formatEndLine", "\n");
 	}
