@@ -1,0 +1,13 @@
+int main()
+{
+	int n, i = 0;
+	==>n;
+	int sum = 0, tmp;
+	while (i < n) {
+		==>tmp;
+		sum = sum + tmp;
+	}
+	<==sum;
+	<==;
+	return 0;
+}
