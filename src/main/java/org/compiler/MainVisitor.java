@@ -86,10 +86,10 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	 */
 	@Override
 	public String visitFunction(cssParser.FunctionContext ctx) {
+		globalContext.currentFunctionName = ctx.ID().getText();
 		if (globalContext.containsFunction(ctx.ID().getText()))
 			globalContext.handleFatalError("function already declared");
 
-		globalContext.currentFunctionName = ctx.ID().getText();
 		globalContext.addNewScope();
 		VarType returnType = TypeVisitor.getInstance().visit(ctx.type());
 
