@@ -1,5 +1,6 @@
 lexer grammar cssLex;
 
+IMPORT_STRING_LIB: 'import string' ;
 TYPE_BYTE: 'byte' ;
 TYPE_INT: 'int' ;
 TYPE_VOID: 'void' ;

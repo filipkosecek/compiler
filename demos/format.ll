@@ -1,0 +1,5 @@
+@formatEndLine = global [2 x i8] c"
+\00"
+@formatStr = global [3 x i8] c"%s\00"
+@formatByte = global [3 x i8] c"%c\00"
+@formatInt = global [3 x i8] c"%d\00"

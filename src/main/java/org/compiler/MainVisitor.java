@@ -27,15 +27,35 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	}
 
 	/**
-	 * Add format strings to the map of global strings.
-	 * String names must match with those
-	 * used in functions handling input and output.
+	 * Add string library functions to global context.
+	 * Warning: if changing the format string sizes, don't
+	 * forget to change them in templates.stg.
+	 * Warning: if changing the names of format strings,
+	 * don't forget to change them in StatementVisitor.java
+	 * in input and output handler function as well.
 	 */
-	private void addFormatStrings() {
-		globalContext.globalStrings.put("@formatByte", "%c");
-		globalContext.globalStrings.put("@formatInt", "%d");
-		globalContext.globalStrings.put("@formatStr", "%s");
-		globalContext.globalStrings.put("@formatEndLine", "\n");
+	private void addStringLibFunctions() {
+		globalContext.addFunctionToGlobalContext("strlen", new Function(
+				VarType.INT, List.of(new Variable("", VarType.BYTE, 1))
+		));
+		globalContext.addFunctionToGlobalContext("strcmp", new Function(
+				VarType.INT, List.of(
+						new Variable("", VarType.BYTE, 1),
+						new Variable("", VarType.BYTE, 1)
+		)
+		));
+		globalContext.addFunctionToGlobalContext("strcpy", new Function(
+				VarType.VOID, List.of(
+				new Variable("", VarType.BYTE, 1),
+				new Variable("", VarType.BYTE, 1)
+		)
+		));
+		globalContext.addFunctionToGlobalContext("strcat", new Function(
+				VarType.VOID, List.of(
+				new Variable("", VarType.BYTE, 1),
+				new Variable("", VarType.BYTE, 1)
+		)
+		));
 	}
 
 	/**
@@ -43,8 +63,11 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	 */
 	@Override
 	public String visitProgram(cssParser.ProgramContext ctx) {
-		addFormatStrings();
 		ST programBodyTemplate = globalContext.templateGroup.getInstanceOf("program");
+		if (ctx.IMPORT_STRING_LIB() != null) {
+			addStringLibFunctions();
+			programBodyTemplate.add("importStringFunctions", true);
+		}
 		for (int i = 0; i < ctx.function().size(); ++i)
 			programBodyTemplate.add("programBody", visit(ctx.function(i)));
 		for (String s : globalContext.globalStrings.keySet()) {

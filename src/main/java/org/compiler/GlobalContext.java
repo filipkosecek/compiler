@@ -14,6 +14,17 @@ public class GlobalContext {
     private final LinkedList<ScopeInfo> scopeStack = new LinkedList<>();
     private final HashMap<String, Function> functions = new HashMap<>();
     public final HashMap<String, String> globalStrings = new HashMap<>();
+
+    /*
+     * These names must with those in StatementVisitor
+     * in io handling visit functions.
+     */
+    public final Map<String, Integer> formatStringSizes = Map.of(
+            "@formatEndLine", 2,
+            "@formatStr", 3,
+            "@formatByte", 3,
+            "@formatInt", 3
+    );
     private int globalStringCounter = 1;
 
     /* This variable is for variale declaration. */

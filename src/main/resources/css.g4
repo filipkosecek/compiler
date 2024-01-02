@@ -3,7 +3,7 @@ grammar css;
 import cssLex;
 
 program
-	: function+ EOF
+	: (IMPORT_STRING_LIB SEMICOLON)? function+ EOF
 ;
 
 type

@@ -230,10 +230,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     public Statement visitStatementOutput(cssParser.StatementOutputContext ctx) {
         if (ctx.expression() == null) {
             String formatStringName = "@formatEndLine";
-            String formatString = globalContext.globalStrings.get(formatStringName);
             ST template = globalContext.templateGroup.getInstanceOf("callPrintfEndline");
             template.add("tmpReg", globalContext.getNewReg());
-            template.add("formatStringSize", formatString.length() + 1);
+            template.add("formatStringSize", String.valueOf(globalContext.formatStringSizes.get(formatStringName)));
             template.add("formatStringName", formatStringName);
             return new Statement(null, template.render());
         }
@@ -270,9 +269,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             default:
                 throw new RuntimeException("This case should never happen.");
         }
-        String formatString = globalContext.globalStrings.get(formatStringName);
         printfTemplate.add("formatStringName", formatStringName);
-        printfTemplate.add("formatStringSize", formatString.length() + 1);
+        printfTemplate.add("formatStringSize",
+                String.valueOf(globalContext.formatStringSizes.get(formatStringName)));
         printfTemplate.add("valueType", globalContext.llPointer(value.type(), value.dimensionCount()));
         printfTemplate.add("value", value.returnRegister());
         return new Statement(null, printfTemplate.render());
@@ -314,7 +313,8 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         template.add("exprCode", var.code());
         template.add("tmpReg", globalContext.getNewReg());
         template.add("formatStringName", formatStringName);
-        template.add("formatStringSize", globalContext.globalStrings.get(formatStringName).length() + 1);
+        template.add("formatStringSize",
+                String.valueOf(globalContext.formatStringSizes.get(formatStringName)));
         if (var.getPtrRegister() == null || var.dimensionCount() > 0) {
             template.add("ptrType", globalContext.llPointer(var.type(), var.dimensionCount()));
             template.add("ptr", var.returnRegister());
