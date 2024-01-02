@@ -1,5 +1,8 @@
 package org.compiler;
 
+/**
+ * This class is returned by ExpressionVisitor.
+ */
 public class Expression{
         private final String code;
         private final String returnRegister;

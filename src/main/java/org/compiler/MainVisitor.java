@@ -7,8 +7,14 @@ import org.gen.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Visits various constructs. Returns LLVM code.
+ */
 public class MainVisitor extends cssBaseVisitor<String> {
-	/* this integer value are used in allocateArrayLevels */
+	/* this integer value are used in allocateArrayLevels
+	 * to generate unique LLVM registers for loops
+	 * which are generated when allocating memory for arrays
+	 */
 	private int iRegisterCounter = 1;
 
 	private static MainVisitor instance = null;
@@ -27,7 +33,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	}
 
 	/**
-	 * Add string library functions to global context.
+	 * Adds string library functions to global context.
 	 * Warning: if changing the format string sizes, don't
 	 * forget to change them in templates.stg.
 	 * Warning: if changing the names of format strings,
@@ -64,12 +70,15 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	@Override
 	public String visitProgram(cssParser.ProgramContext ctx) {
 		ST programBodyTemplate = globalContext.templateGroup.getInstanceOf("program");
+		/* declare string library functions if import was specified */
 		if (ctx.IMPORT_STRING_LIB() != null) {
 			addStringLibFunctions();
 			programBodyTemplate.add("importStringFunctions", true);
 		}
+		/* visit functions (at least one function must be defined) */
 		for (int i = 0; i < ctx.function().size(); ++i)
 			programBodyTemplate.add("programBody", visit(ctx.function(i)));
+		/* fill in the template */
 		for (String s : globalContext.globalStrings.keySet()) {
 			ST globString = globalContext.templateGroup.getInstanceOf("globalString");
 			globString.add("name", s);
@@ -82,7 +91,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 	}
 
 	/**
-	 * Generate function code and add function to the map of declared functions.
+	 * Generates function code and adds function to the map of declared functions.
 	 */
 	@Override
 	public String visitFunction(cssParser.FunctionContext ctx) {
@@ -93,6 +102,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		globalContext.addNewScope();
 		VarType returnType = TypeVisitor.getInstance().visit(ctx.type());
 
+		/* visit function argument list */
 		List<Variable> argList;
 		String argListCode;
 		if (ctx.argList() != null) {
@@ -105,9 +115,16 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		}
 
 		Function function = new Function(returnType, argList);
+		/* set current function */
 		globalContext.currentFunction = function;
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
 
+		/*
+		 * This section allocates memory on stack for local variables which
+		 * are arguments for the function and copies the value passed as argument
+		 * to the memory address. This enables users to assign to variables that
+		 * were passed as arguments.
+		 */
 		for (Variable arg : argList) {
 			if (arg.getDimensionCount() > 0)
 				continue;
@@ -122,6 +139,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			functionDef.add("paramInit", paramInit.render());
 		}
 
+		/* fill in the template */
 		Statement statement = StatementVisitor.getInstance(globalContext).visit(ctx.codeBlock());
 		functionDef.add("returnType", globalContext.variableTypeToLLType(returnType));
 		functionDef.add("name", ctx.ID().getText());
@@ -138,9 +156,15 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return functionDef.render();
 	}
 
+	/**
+	 * Sets inherited attribute currentDeclarationType and visits
+	 * children (declAssign) which perform the allocation itself.
+	 * @param ctx the parse tree
+	 */
 	@Override
 	public String visitVarDeclBlock(cssParser.VarDeclBlockContext ctx) {
 		VarType type = TypeVisitor.getInstance().visit(ctx.type());
+		/* set the inherited attribute */
 		globalContext.setCurrentDeclarationType(type);
 		ST template = globalContext.templateGroup.getInstanceOf("declarationBlock");
 		for (int i = 0; i < ctx.declAssign().size(); ++i) {
@@ -149,6 +173,25 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return template.render();
 	}
 
+	/**
+	 * This recursive function generates loops which allocate memory
+	 * for arrays. Memory is allocated in a C-like way. Each level contains
+	 * pointers which point to a memory address base, where lower level
+	 * pointers are allocated, these point to the next level and so on.
+	 * Every memory is allocated on stack and the pointers are assigned properly.
+	 * The loops are then 'concatenated' so that parent loop body contains
+	 * child loop. The function is pretty ugly, but I am afraid there
+	 * was no other option.
+	 * @param sizes list of expressions representing dimension level size
+	 * @param iterationVars list of loop iteration variables generated beforehand
+	 * @param previousIncLabel label of the parent level loop
+	 * @param previousAllocReg parent pointer which points to the current memory base
+	 *                         which contains pointers of the current dimension level
+	 * @param index current index in sizes list
+	 * @param type actual type of the elements of the array being allocated
+	 * @return code of the current loop and return its beginning label
+	 * to the parent loop
+	 */
 	private Pair<String, String> generateAllocLoops(ArrayList<Expression> sizes,
 													  ArrayList<String> iterationVars,
 									  				String previousIncLabel,
@@ -161,27 +204,45 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		String loopHeaderLabel = globalContext.genNewLabel();
 		String reg4 = globalContext.getNewReg();
 		ST template = globalContext.templateGroup.getInstanceOf("allocLoop");
+		/* type of value representing amount of pointers in the current level allocated by parent */
 		template.add("allocAmountParentType", globalContext.variableTypeToLLType(sizes.get(index - 1).type()));
+		/* type of iteration variable */
 		template.add("iType", globalContext.llPointer(sizes.get(index - 1).type(), 1));
+		/* loop iteration variable */
 		template.add("i", iterationVars.get(index));
+		/* header label of current loop */
 		template.add("loopHeaderLabel", loopHeaderLabel);
+		/* compare for the loop header expression */
 		template.add("cmp", globalContext.getNewReg());
+		/* how many pointers are in current level */
 		template.add("allocAmountParentReg", sizes.get(index - 1).returnRegister());
+		/* temporary registers for template */
 		template.add("reg1", globalContext.getNewReg());
 		template.add("reg2", globalContext.getNewReg());
+		/* label of current loop body */
 		template.add("bodyLabel", globalContext.genNewLabel());
+		/* end label of current loop */
 		template.add("endLabel", previousIncLabel);
 		template.add("reg4", reg4);
+		/* type of lower level pointers, i.e. one star less */
 		template.add("allocPtrType", globalContext.llPointer(type, level - 1));
+		/* how many items to allocate - type */
 		template.add("allocAmountCurrentType", globalContext.variableTypeToLLType(sizes.get(index).type()));
+		/* how many items to allocate */
 		template.add("allocAmountCurrentReg", sizes.get(index).returnRegister());
+		/* type of parent pointer */
 		template.add("parentPtrType", globalContext.llPointer(type, level + 1));
+		/* parent pointer value */
 		template.add("parentPtr", previousAllocReg);
+		/* label of the loop beginning */
 		template.add("begLoopLabel", begLoopLabel);
 		template.add("reg5", globalContext.getNewReg());
+		/* type of current pointer level */
 		template.add("currentPtrType", globalContext.llPointer(type, level));
+		/* label where iteration variable is incremented */
 		template.add("incLabel", incLabel);
 
+		/* base case for the lowest level pointer */
 		if (level > 1) {
 			template.add("addSubLoop", true);
 			Pair<String, String> p = generateAllocLoops(sizes, iterationVars,
@@ -192,12 +253,21 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return new Pair<>(template.render(), begLoopLabel);
 	}
 
+	/**
+	 * Allocate the highest level array of pointers and save pointer to them.
+	 * As opposed to lower levels, the top level allocation
+	 * is not be translated to a loop.
+	 * @param var variable to allocate
+	 * @param sizes sizes which are passed to generateAllocLoops
+	 * @return code
+	 */
 	private String allocateArrayLevels(Variable var, ArrayList<Expression> sizes) {
 		ArrayList<String> iRegisters = new ArrayList<>(var.getDimensionCount());
 		for (int i = 0; i < var.getDimensionCount(); ++i) {
 			iRegisters.add(String.format("%%i%d_%d", i, iRegisterCounter++));
 		}
 		ST allocInit = globalContext.templateGroup.getInstanceOf("allocInit");
+		/* generate code for iteration variables initialization (the highest does not need one) */
 		for (int i = 0; i < var.getDimensionCount(); ++i) {
 			if (i > 0) {
 				ST alloca = globalContext.templateGroup.getInstanceOf("alloca");
@@ -208,6 +278,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			allocInit.add("exprCode", sizes.get(i).code());
 		}
 
+		/* generate code for highest level allocation */
 		String endLabel = globalContext.genNewLabel();
 		ST firstLoop = globalContext.templateGroup.getInstanceOf("firstAllocLoop");
 		firstLoop.add("init", allocInit.render());
@@ -216,6 +287,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		firstLoop.add("allocPtrType", globalContext.llPointer(var.getType(), sizes.size() - 1));
 		firstLoop.add("allocAmountType", globalContext.variableTypeToLLType(sizes.getFirst().type()));
 		firstLoop.add("allocAmountReg", sizes.getFirst().returnRegister());
+		/* loops don't need to be generated if only one level is to be allocated */
 		if (sizes.size() > 1) {
 			firstLoop.add("addSubLoop", true);
 			firstLoop.add("endLabel", endLabel);
@@ -226,6 +298,11 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return firstLoop.render();
 	}
 
+	/**
+	 * Visits children expression for array level/dimension
+	 * sizes and creates a list of them. It is then passed to above functions
+	 * to generate code for array allocation.
+	 */
 	private String visitDeclAssignArray(cssParser.DeclAssignContext ctx, VarType type) {
 		ArrayList<Expression> sizes = new ArrayList<>(ctx.declTypeArray().size());
 		boolean containsNull = false, containsSome = false;
@@ -238,6 +315,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 				sizes.add(size);
 			}
 		}
+		/* every array must either contain all sizes of dimensions or none */
 		if (containsNull && containsSome) {
 			globalContext.handleFatalError("when declaring an array, either" +
 					"every dimension must have a specified size or none");
@@ -249,6 +327,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 			assignValue = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
 
 		String code;
+		/* an array whose size is to be allocated cannot be assigned another array */
 		if (!containsSome) {
 			if (assignValue != null) {
 				code = assignValue.code();
@@ -271,6 +350,10 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		return code;
 	}
 
+	/**
+	 * Generate code for variable allocation.
+	 * @param ctx the parse tree
+	 */
 	@Override
 	public String visitDeclAssign(cssParser.DeclAssignContext ctx) {
 		Variable var = globalContext.getVariable(ctx.ID().getText());
@@ -286,6 +369,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 					"' declared more than once");
 		}
 
+		/* use above functions to handle arrays */
 		if (!ctx.declTypeArray().isEmpty())
 			return visitDeclAssignArray(ctx, type);
 
@@ -294,6 +378,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		template.add("reg", register);
 		template.add("type", globalContext.variableTypeToLLType(type));
 
+		/* assign an expression to the newly allocated variable */
 		if (ctx.expression() != null) {
 			Expression assignValue = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
 			if (assignValue.type() != type) {

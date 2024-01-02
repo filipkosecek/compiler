@@ -5,6 +5,9 @@ import org.stringtemplate.v4.ST;
 
 import java.util.ArrayList;
 
+/**
+ * Visits statements.
+ */
 public class StatementVisitor extends cssBaseVisitor<Statement> {
     private static StatementVisitor instance = null;
     public static StatementVisitor getInstance(GlobalContext globalContext) {
@@ -19,6 +22,15 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         this.globalContext = globalContext;
     }
 
+    /**
+     * Visits codeBlock representing a code block. Concatenates
+     * children statements. Adds a jump instruction to current code
+     * fragment to point to the next one. If the label of the next
+     * code fragment is null, the blocks are merged to avoid redundant
+     * labels. Statement returned by this function always begins
+     * a label.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitCodeBlock(cssParser.CodeBlockContext ctx) {
         globalContext.addNewScope();
@@ -27,6 +39,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         for (int i = 0; i < ctx.codeFragment().size(); ++i) {
             statements.add(visit(ctx.codeFragment(i)));
         }
+        /* concatenate blocks */
         for (int i = 0; i < statements.size(); ++i) {
             ST bind = globalContext.templateGroup.getInstanceOf("codeFragment");
             bind.add("code", statements.get(i).code());
@@ -39,6 +52,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             concat.add("code", bind.render());
         }
 
+        /* if the first does not have a label, generate one */
         String firstLabel;
         if (!statements.isEmpty() && statements.getFirst().firstLabel() != null) {
             firstLabel = statements.getFirst().firstLabel();
@@ -51,23 +65,43 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         return new Statement(firstLabel, concat.render());
     }
 
+    /**
+     * Visits code fragment representing an expression (i.e. function call).
+     */
     @Override
     public Statement visitCodeFragmentExpr(cssParser.CodeFragmentExprContext ctx) {
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         return new Statement(null, expression.code());
     }
 
+    /**
+     * Visits code fragment representing a variable declaration.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitCodeFragmentVarDecl(cssParser.CodeFragmentVarDeclContext ctx) {
         String code = MainVisitor.getInstance(globalContext).visit(ctx.varDeclBlock());
         return new Statement(null, code);
     }
 
+    /**
+     * Visits code fragment representing a statement.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitCodeFragmentStatement(cssParser.CodeFragmentStatementContext ctx) {
         return visit(ctx.statement());
     }
 
+    /**
+     * Visits a while loop statement. While always ends with
+     * a newly generated label where a jump is performed once
+     * the loop has finished. Function visitCodeBlock correctly
+     * adds br instruction to jump to the next code fragment
+     * if the following code fragment starts with one. If not, the execution
+     * of the following code fragment begins with end label of the loop.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitWhile(cssParser.WhileContext ctx) {
         String firstLabel = globalContext.genNewLabel();
@@ -93,6 +127,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         whileTemplate.add("expressionType", globalContext.variableTypeToLLType(expression.type()));
         whileTemplate.add("expressionReg", expression.returnRegister());
         String labelBody;
+        /* jump to the loop body, i.e. label of the body code block */
         if (codeBlock.firstLabel() == null) {
             labelBody = globalContext.genNewLabel();
             whileTemplate.add("addBodyLabel", true);
@@ -129,6 +164,13 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         return new Statement(null, returnTemplate.render());
     }
 
+    /**
+     * Visit if statement. Recursively visits else if and else.
+     * If the expression in the header is false, a jump to the next else if
+     * or else is performed. Else ifs and else are visited from left to right,
+     * so that each block knows where to jump when the expression is false (equal to 0).
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitIf(cssParser.IfContext ctx) {
         ST ifTemplate = globalContext.templateGroup.getInstanceOf("if");
@@ -166,6 +208,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             globalContext.getLastScope().nextElifLabel = globalContext.getLastScope().ifEndLabel;
         }
 
+        /* visit elifs from right to left */
         ArrayList<Statement> elifs = new ArrayList<>(ctx.elif().size());
         for (int i = ctx.elif().size() - 1; i >= 0; --i) {
             Statement elif = visit(ctx.elif(i));
@@ -181,6 +224,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         return new Statement(null, ifTemplate.render());
     }
 
+    /**
+     * Visit else if statement.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitElif(cssParser.ElifContext ctx) {
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
@@ -214,6 +261,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         return new Statement(firstLabel, elif.render());
     }
 
+    /**
+     * Visit else statement.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitElse(cssParser.ElseContext ctx) {
         ST elseStat = globalContext.templateGroup.getInstanceOf("else_");
@@ -251,8 +302,18 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         return new Statement(null, template.render());
     }
 
+    /**
+     * Generates code which prints to stdout.
+     * Uses printf function along with format strings
+     * whose sizes are stored in a map in GlobalContext.
+     * The strings are defined in a separate LLVM file
+     * format.ll. Only primitive type or strings can
+     * be printed.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitStatementOutput(cssParser.StatementOutputContext ctx) {
+        /* if the expression is empty, print a new line character */
         if (ctx.expression() == null) {
             String formatStringName = "@formatEndLine";
             ST template = globalContext.templateGroup.getInstanceOf("callPrintfEndline");
@@ -302,6 +363,15 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         return new Statement(null, printfTemplate.render());
     }
 
+    /**
+     * Generates code which reads from stdin.
+     * Uses scanf function along with format strings
+     * whose sizes are stored in a map in GlobalContext.
+     * The strings are defined in a separate LLVM file
+     * format.ll. Only primitive type or strings can
+     * be read.
+     * @param ctx the parse tree
+     */
     @Override
     public Statement visitStatementInput(cssParser.StatementInputContext ctx) {
         ST template = globalContext.templateGroup.getInstanceOf("scanf");

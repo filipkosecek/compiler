@@ -2,10 +2,12 @@ package org.compiler;
 
 import org.gen.*;
 
-/* toto bude treba upravit ak pridas globalne premenne
- * bude treba prejst vyssie scopy
+/**
+ * Visits a single function argument from
+ * a function declaration signature. Returns
+ * an instance of Variable up the tree
+ * to the FunctionArgumentListVisitor.
  */
-
 public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     private static FunctionArgumentVisitor instance = null;
     public static FunctionArgumentVisitor getInstance(GlobalContext globalContext) {
@@ -20,6 +22,10 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
         this.globalContext = globalContext;
     }
 
+    /**
+     * This functions checks if a variable is of void type.
+     * If so, program exits and prints an error message.
+     */
     private void checkVoidType(VarType type) {
         if (type == VarType.VOID)
             globalContext.handleFatalError("a function argument cannot be of void type.");
@@ -36,6 +42,7 @@ public class FunctionArgumentVisitor extends cssBaseVisitor<Variable> {
     public Variable visitFuncArg(cssParser.FuncArgContext ctx) {
         VarType type = TypeVisitor.getInstance().visit(ctx.type());
         checkVoidType(type);
+        /* check if the variable is already declared in current scope */
         if (globalContext.getVariable(ctx.ID().getText()) != null)
             globalContext.handleFatalError("variable '" + ctx.ID().getText() +
                     "' already declared");

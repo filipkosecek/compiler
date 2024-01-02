@@ -3,6 +3,10 @@ package org.compiler;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a function. Contains a list
+ * of function argument variables and return type.
+ */
 public class Function {
     private final VarType returnType;
     private final ArrayList<Variable> argList;

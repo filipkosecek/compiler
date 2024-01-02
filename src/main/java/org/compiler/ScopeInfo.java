@@ -2,6 +2,9 @@ package org.compiler;
 
 import java.util.HashMap;
 
+/**
+ * Contains information about current scope.
+ */
 public class ScopeInfo {
     private final HashMap<String, Variable> variables;
 

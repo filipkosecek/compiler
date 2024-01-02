@@ -1,5 +1,8 @@
 package org.compiler;
 
+/**
+ * Represents a source program variable.
+ */
 public class Variable {
     private String llName;
     private final VarType variableType;

@@ -2,6 +2,9 @@ package org.compiler;
 
 import org.gen.*;
 
+/**
+ * Visits type non-terminal and returns one of enum values.
+ */
 public class TypeVisitor extends cssBaseVisitor<VarType> {
     private static TypeVisitor instance = null;
     public static TypeVisitor getInstance() {

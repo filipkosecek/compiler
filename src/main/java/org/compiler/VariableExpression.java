@@ -1,5 +1,11 @@
 package org.compiler;
 
+/**
+ * An extension to Expression class. Contains variable name and ptrRegsiter
+ * in addition to Expression which is useful when for instance
+ * loading a value to an array element. In such a case, the memory address
+ * is needed for store instruction not the register containing the value.
+ */
 public class VariableExpression {
     private final String code;
     private final String returnRegister;

@@ -5,6 +5,10 @@ import org.stringtemplate.v4.ST;
 
 import java.util.List;
 
+/**
+ * Visits expressions and returns instances of Expression.
+ * Uses singleton design.
+ */
 public class ExpressionVisitor extends cssBaseVisitor<Expression> {
     private static ExpressionVisitor instance = null;
 
@@ -34,15 +38,24 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 String name = globalContext.getNewGlobalStringName();
                 ST code = globalContext.templateGroup.getInstanceOf("globalStringAccess");
                 code.add("dest", destReg);
+                /* length without quatation marks and with a null terminating byte */
                 code.add("size", String.valueOf(ctx.STRING().getText().length() - 2 + 1));
                 code.add("name", name);
                 StringBuilder sb = new StringBuilder(ctx.STRING().getText());
                 sb.deleteCharAt(ctx.STRING().getText().length() - 1);
                 sb.deleteCharAt(0);
+                /* add the string to the map of strings,
+                 * so that visitProgram function can define
+                 * them in the output file
+                 */
                 globalContext.globalStrings.put(name, sb.toString());
                 return new Expression(code.render(), destReg, VarType.BYTE,
                         1);
             case cssParser.CHAR:
+                /*
+                 * constant propagation is not supported, always use add
+                 * to save the literal value
+                 */
                 template = globalContext.templateGroup.getInstanceOf("addition");
                 template.add("destReg", destReg);
                 template.add("type", "i8");
@@ -61,12 +74,27 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         return null;
     }
 
+    /**
+     * Evaluate expression representing a value of a variable.
+     * Call function in VariableExpressionVisitor and convert
+     * VariableExpression instance to Expression.
+     * @param ctx the parse tree
+     */
     @Override
     public Expression visitIdExpr(cssParser.IdExprContext ctx) {
         VariableExpression var = VariableExpressionVisitor.getInstance(globalContext).visit(ctx.variable());
         return new Expression(var.code(), var.returnRegister(), var.type(), var.dimensionCount());
     }
 
+    /**
+     * Assign a value to the variable. A memory address needs
+     * to be written, therefore make use of VariableExpression
+     * member ptrRegister. Only arrays on top level (without dereference)
+     * are assigned directly to their registers. This means that
+     * a = b does not change any memory pointed to by a, assuming a and b
+     * are both arrays.
+     * @param ctx the parse tree
+     */
     @Override
     public Expression visitAssignExpr(cssParser.AssignExprContext ctx) {
         Expression assignValue = visit(ctx.expression());
@@ -104,8 +132,15 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         return visit(ctx.expression());
     }
 
+    /**
+     * Visit function call and check if the argument count
+     * matches the signature of the called function.
+     * Also perform type checking of argument expressions.
+     * @param ctx the parse tree
+     */
     @Override
     public Expression visitFuncCallExpr(cssParser.FuncCallExprContext ctx) {
+        /* check if the function is declared */
         Function function = globalContext.getFunction(ctx.ID().getText());
         if (function == null) {
             globalContext.handleFatalError("declaration of function '" + ctx.ID().getText() +
@@ -115,6 +150,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
 
         String argList = "";
         StringBuilder code = new StringBuilder();
+        /* argument list might be empty */
         if (ctx.funcParamList() != null) {
             ST argListTemplate = globalContext.templateGroup.getInstanceOf("argList");
             List<Expression> parameters = FuncParamListVisitor.getInstance(globalContext).visit(ctx.funcParamList());
@@ -131,13 +167,16 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                     globalContext.handleFatalError("argument list does not match signature of function '" +
                             ctx.ID().getText() + "'");
                 String parameterType = globalContext.llPointer(parameter.type(), parameter.dimensionCount());
+                /* add expression registers to the arguments */
                 argListTemplate.add("arg", parameterType + " " + parameter.returnRegister());
+                /* append code which evaluates argument expressions */
                 code.append(parameter.code());
                 code.append('\n');
             }
             argList = argListTemplate.render();
         }
 
+        /* generate code for the function call itself */
         ST functionCall = globalContext.templateGroup.getInstanceOf("functionCall");
         functionCall.add("returnType", globalContext.variableTypeToLLType(function.getReturnType()));
         functionCall.add("id", ctx.ID().getText());
@@ -153,6 +192,11 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 0);
     }
 
+    /**
+     * Generic function which fills the template
+     * for type cast expression, since all
+     * templates have the same signature.
+     */
     private Expression generateTypeCastExpr(String templateName, Expression value,
                                             VarType destinationType) {
         ST template = globalContext.templateGroup.getInstanceOf(templateName);
@@ -165,8 +209,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 destinationType, value.dimensionCount());
     }
 
+    /**
+     * Visit type cast expression.
+     */
     @Override
     public Expression visitTypeCastExpr(cssParser.TypeCastExprContext ctx) {
+        /* check types of both expressions, i.e. dimension count must match */
         Expression expression = visit(ctx.expression());
         VarType destinationType = TypeVisitor.getInstance().visit(ctx.type());
         VarType sourceType = expression.type();
@@ -176,6 +224,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         if (sourceType == VarType.VOID || destinationType == VarType.VOID)
             globalContext.handleFatalError("expressions cannot be cast to void type");
 
+        /* nothing to do */
         if (sourceType == destinationType)
             return expression;
 
@@ -192,7 +241,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             return generateTypeCastExpr("bitcast", expression, destinationType);
         }
 
-        /* one extend */
+        /* sign extend */
         if (sourceType == VarType.BYTE)
             return generateTypeCastExpr("signExtend", expression, destinationType);
 
@@ -204,8 +253,13 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         return null;
     }
 
+    /**
+     * Visit unary operation expression.
+     * @param ctx the parse tree
+     */
     @Override
     public Expression visitUnOpExpr(cssParser.UnOpExprContext ctx) {
+        /* expression must not be of void type or have dimension count other than 0 */
         Expression expression = visit(ctx.expression());
         if (expression.type() == VarType.VOID)
             globalContext.handleFatalError("cannot apply unary operations on void type");
@@ -233,6 +287,11 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         return null;
     }
 
+    /**
+     * This function fills the template for binary operation template.
+     * Warning: all binary operation templates must have the same
+     * signature
+     */
     private Expression genBinOpExpr(String templateName, String expressionCode,
                                     Expression first, Expression second) {
         String destReg = globalContext.getNewReg();
@@ -246,6 +305,12 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
                 first.type(), 0);
     }
 
+    /**
+     * This function fills the template for logical binary
+     * operation template. Template name is received as an argument.
+     * Warning: all logical binary operation templates
+     * must have the same signature
+     */
     private Expression getLogicalBinop(Expression left, Expression right, boolean isLogicalAnd) {
         String destReg = globalContext.getNewReg();
         ST template;
@@ -265,12 +330,23 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         return new Expression(template.render(), destReg, left.type(), 0);
     }
 
+    /**
+     * Visit binary operation expression.
+     * Warning: binary operation templates must
+     * share their template signatures
+     * Warning: binary logical operation templates
+     * must share their template signatures.
+     * @param ctx the parse tree
+     */
     @Override
     public Expression visitBinOpExpr(cssParser.BinOpExprContext ctx) {
+        /* recursively evaluate both expressions */
         Expression first = visit(ctx.expression(0));
         Expression second = visit(ctx.expression(1));
+        /* check for void type expressions, for example void function call */
         if (first.type() == VarType.VOID || second.type() == VarType.VOID)
             globalContext.handleFatalError("binary operation operand cannot be of type void");
+        /* perform type check */
         if ((first.type() != second.type()) ||
                 first.dimensionCount() != second.dimensionCount() ||
                 first.dimensionCount() != 0)
@@ -280,6 +356,7 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
         String templateName = "";
 
         switch (ctx.binOp.getType()) {
+            /* binary operation expressions */
             case cssParser.MULT:
                 templateName = "multiplication";
                 break;
@@ -313,19 +390,30 @@ public class ExpressionVisitor extends cssBaseVisitor<Expression> {
             case cssParser.LTE:
                 templateName = "cmpSLE";
                 break;
+            /* logical binary operation expressions */
             case cssParser.LOGICAL_AND:
                 return getLogicalBinop(first, second, true);
             case cssParser.LOGICAL_OR:
                 return getLogicalBinop(first, second, false);
         }
+        /* all cases should be covered */
+        /* fill in the template */
         return genBinOpExpr(templateName, expressionCode, first, second);
     }
 
+    /**
+     * Return instance of Expression representing
+     * size of an array dimension.
+     * @param ctx the parse tree
+     */
     @Override
     public Expression visitDeclTypeArray(cssParser.DeclTypeArrayContext ctx) {
         if (ctx.expression() == null)
             return null;
-        Expression size =  visit(ctx.expression());
+        Expression size = visit(ctx.expression());
+        /* check for void type */
+        if (size.type() == VarType.VOID)
+            globalContext.handleFatalError("size of an array dimension cannot of type 'void'");
         if (size.dimensionCount() != 0) {
             globalContext.handleFatalError("size of an array dimension must not be an array");
         }

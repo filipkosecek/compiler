@@ -6,6 +6,9 @@ import org.stringtemplate.v4.ST;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Visits an expression representing a variable value.
+ */
 public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression> {
     private static VariableExpressionVisitor instance = null;
 
@@ -31,7 +34,7 @@ public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression
     }
 
     /**
-     * Return an Expression structure containing code
+     * Returns an Expression structure containing code
      * which corresponds to dereference and its value.
      */
     private VariableExpression dereferenceLocalVar(Variable var, String varName) {
@@ -47,7 +50,7 @@ public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression
     }
 
     /**
-     * Return code and Expression structure which corresponds
+     * Returns code and Expression structure which corresponds
      * to array access.
      */
     private VariableExpression arrayAccess(Variable var, List<Expression> expressionList, String varName) {
@@ -59,6 +62,7 @@ public class VariableExpressionVisitor extends cssBaseVisitor<VariableExpression
 
         ST multiLevelIndexing = globalContext.templateGroup.getInstanceOf("arrayMultiLevelIndexing");
         String tmpReg = null;
+        /* dereference a pointer to get a lower level pointer and ultimately the final value */
         for (int i = 0; i < n; ++i) {
             Expression expression = expressionList.get(i);
             String ptrReg = destReg;
