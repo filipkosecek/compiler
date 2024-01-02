@@ -106,6 +106,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     public Statement visitStatementReturn(cssParser.StatementReturnContext ctx) {
         Function currentFunction = globalContext.currentFunction;
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
+        if (expression.type() == VarType.VOID) {
+            globalContext.handleFatalError("value of type 'void' cannot be returned from a function");
+        }
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("only primitive values can be returned" +
                     " from a function, i.e. non-array");
