@@ -76,6 +76,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         globalContext.getLastScope().currentLoopBegLabel = firstLabel;
         globalContext.getLastScope().currentLoopEndLabel = endLabel;
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
+        if (expression.type() == VarType.VOID) {
+            globalContext.handleFatalError("while statement header cannot " +
+                    "contain an expression of type 'void'");
+        }
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("only simple expression can go to while");
         }
@@ -129,6 +133,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     public Statement visitIf(cssParser.IfContext ctx) {
         ST ifTemplate = globalContext.templateGroup.getInstanceOf("if");
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
+        if (expression.type() == VarType.VOID) {
+            globalContext.handleFatalError("if header cannot contain an " +
+                    "expression of type 'void'");
+        }
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("if header can only contain a primitive non-array expression");
         }
@@ -177,6 +185,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     public Statement visitElif(cssParser.ElifContext ctx) {
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
         Statement body = visit(ctx.codeBlock());
+        if (expression.type() == VarType.VOID) {
+            globalContext.handleFatalError("else if header cannot contain " +
+                    "an expression of type 'void'");
+        }
         if (expression.dimensionCount() != 0) {
             globalContext.handleFatalError("if header can only contain a primitive non-array expression");
         }
