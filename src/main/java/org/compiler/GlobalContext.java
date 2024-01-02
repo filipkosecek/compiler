@@ -120,7 +120,10 @@ public class GlobalContext {
     }
 
     public void handleFatalError(String message) {
-        System.err.println("fatal error: in function " + currentFunctionName + ": " + message);
+        if (currentFunctionName != null)
+            System.err.println("fatal error: in function " + currentFunctionName + ": " + message);
+        else
+            System.err.println("fatal error: " + message);
         System.exit(2);
     }
 
