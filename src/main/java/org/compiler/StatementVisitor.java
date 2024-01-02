@@ -72,6 +72,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
     public Statement visitWhile(cssParser.WhileContext ctx) {
         String firstLabel = globalContext.genNewLabel();
         String endLabel = globalContext.genNewLabel();
+        /* set inherited attributes for continue and break statements */
         globalContext.getLastScope().currentLoopBegLabel = firstLabel;
         globalContext.getLastScope().currentLoopEndLabel = endLabel;
         Expression expression = ExpressionVisitor.getInstance(globalContext).visit(ctx.expression());
@@ -95,6 +96,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
             labelBody = codeBlock.firstLabel();
         }
         whileTemplate.add("labelBody", labelBody);
+        /* unset inherited attributes for continue and break statements */
+        globalContext.getLastScope().currentLoopBegLabel = null;
+        globalContext.getLastScope().currentLoopEndLabel = null;
         return new Statement(firstLabel, whileTemplate.render());
     }
 
@@ -214,6 +218,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
 
     @Override
     public Statement visitStatementCont(cssParser.StatementContContext ctx) {
+        if (globalContext.getLastScope().currentLoopBegLabel == null) {
+            globalContext.handleFatalError("continue statement must only be used inside a loop");
+        }
         ST template = globalContext.templateGroup.getInstanceOf("continue");
         template.add("begLoopLabel", globalContext.getLastScope().currentLoopBegLabel);
         return new Statement(null, template.render());
@@ -221,6 +228,9 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
 
     @Override
     public Statement visitStatementBreak(cssParser.StatementBreakContext ctx) {
+        if (globalContext.getLastScope().currentLoopEndLabel == null) {
+            globalContext.handleFatalError("break statement must only be used inside a loop");
+        }
         ST template = globalContext.templateGroup.getInstanceOf("break");
         template.add("endLoopLabel", globalContext.getLastScope().currentLoopEndLabel);
         return new Statement(null, template.render());
