@@ -36,7 +36,6 @@ int main()
 		i = i + 1;
 	}
 	floyd_warshall(matrix, n);
-	<==;
 	i = 0;
 	while (i < n) {
 		j = 0;

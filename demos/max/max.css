@@ -2,13 +2,15 @@ int main()
 {
 	int n, i = 0;
 	==>n;
-	int sum = 0, tmp;
+	int max = 0, tmp;
 	while (i < n) {
 		==>tmp;
-		sum = sum + tmp;
+		if (i == 0 || tmp > max) {
+			max = tmp;
+		}
 		i = i + 1;
 	}
-	<==sum;
+	<==max;
 	<==;
 	return 0;
 }
