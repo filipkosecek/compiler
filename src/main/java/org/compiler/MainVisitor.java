@@ -115,6 +115,7 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		}
 
 		Function function = new Function(returnType, argList);
+		globalContext.addFunctionToGlobalContext(ctx.ID().getText(), function);
 		/* set current function */
 		globalContext.currentFunction = function;
 		ST functionDef = globalContext.templateGroup.getInstanceOf("functionDef");
@@ -148,8 +149,6 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		functionDef.add("firstLabel", statement.firstLabel());
 		if(returnType == VarType.VOID)
 			functionDef.add("voidFunction", true);
-
-		globalContext.addFunctionToGlobalContext(ctx.ID().getText(), function);
 
 		globalContext.popScope();
 
