@@ -54,8 +54,8 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
 
         /* if the first does not have a label, generate one */
         String firstLabel;
-        if (!statements.isEmpty() && statements.getFirst().firstLabel() != null) {
-            firstLabel = statements.getFirst().firstLabel();
+        if (!statements.isEmpty() && statements.get(0).firstLabel() != null) {
+            firstLabel = statements.get(0).firstLabel();
         } else {
             firstLabel = globalContext.genNewLabel();
             concat.add("addFirstLabel", true);
@@ -335,7 +335,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
         printfTemplate.add("exprCode", value.code());
         printfTemplate.add("tmpReg", globalContext.getNewReg());
         switch (value.type()) {
-            case VarType.BYTE:
+            case BYTE:
                 if (value.dimensionCount() == 0) {
                     formatStringName = "@formatByte";
                 } else if (value.dimensionCount() == 1) {
@@ -346,10 +346,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
                     throw new RuntimeException("this never executes, just to suppress warnings");
                 }
                 break;
-            case VarType.INT:
+            case INT:
                 formatStringName = "@formatInt";
                 break;
-            case VarType.VOID:
+            case VOID:
                 globalContext.handleFatalError("values of type void cannot be printed");
                 throw new RuntimeException("this never executes, just to suppress warnings");
             default:
@@ -384,7 +384,7 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
 
         String formatStringName;
         switch (var.type()) {
-            case VarType.BYTE:
+            case BYTE:
                 if (var.dimensionCount() == 1) {
                     formatStringName = "@formatStr";
                 } else if (var.dimensionCount() == 0) {
@@ -395,10 +395,10 @@ public class StatementVisitor extends cssBaseVisitor<Statement> {
                     throw new RuntimeException("this never executes, just to suppress warnings");
                 }
                 break;
-            case VarType.INT:
+            case INT:
                 formatStringName = "@formatInt";
                 break;
-            case VarType.VOID:
+            case VOID:
                 globalContext.handleFatalError("cannot load a value to a void type");
                 throw new RuntimeException("this never executes, just to suppress warnings");
             default:

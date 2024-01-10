@@ -284,8 +284,8 @@ public class MainVisitor extends cssBaseVisitor<String> {
 		String resultReg = var.getLlName();
 		firstLoop.add("resultReg", resultReg);
 		firstLoop.add("allocPtrType", globalContext.llPointer(var.getType(), sizes.size() - 1));
-		firstLoop.add("allocAmountType", globalContext.variableTypeToLLType(sizes.getFirst().type()));
-		firstLoop.add("allocAmountReg", sizes.getFirst().returnRegister());
+		firstLoop.add("allocAmountType", globalContext.variableTypeToLLType(sizes.get(0).type()));
+		firstLoop.add("allocAmountReg", sizes.get(0).returnRegister());
 		/* loops don't need to be generated if only one level is to be allocated */
 		if (sizes.size() > 1) {
 			firstLoop.add("addSubLoop", true);
