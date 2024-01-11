@@ -2,7 +2,7 @@ import string;
 
 void sort(byte s[][], int n, int max_size)
 {
-	byte tmp_string[max_size];
+	byte tmp_string[max_size + 1];
 	int i = 0, j;
 	while (i < n) {
 		j = 0;
